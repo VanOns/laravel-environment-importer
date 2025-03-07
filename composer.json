@@ -1,0 +1,39 @@
+{
+    "name": "van-ons/laravel-environment-importer",
+    "description": "A Laravel package for easy importing of a configured environment.",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Danique Wijnalda",
+            "email": "danique@van-ons.nl"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "spatie/db-dumper": "^3.8",
+        "laravel/framework": ">=10"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "dev-master",
+        "phpstan/phpstan": "2.0.x-dev",
+        "orchestra/testbench": "10.x-dev"
+    },
+    "scripts": {
+        "analyse": "vendor/bin/phpstan analyse",
+        "format": "vendor/bin/php-cs-fixer fix"
+    },
+    "autoload": {
+        "psr-4": {
+            "VanOns\\LaravelEnvironmentImporter\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "VanOns\\LaravelEnvironmentImporter\\LaravelEnvironmentImporterServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "stable"
+}
