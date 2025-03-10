@@ -26,7 +26,8 @@ class LaravelEnvironmentImporterServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->mergeConfigFrom(
-            __DIR__.'/../config/environment-importer.php', 'environment-importer'
+            __DIR__.'/../config/environment-importer.php',
+            'environment-importer'
         );
     }
 }
