@@ -17,6 +17,7 @@ use Illuminate\Support\Str;
 use Spatie\DbDumper\Databases\MySql;
 use Spatie\DbDumper\Exceptions\CannotSetParameter;
 use Symfony\Component\Process\Process;
+use VanOns\LaravelEnvironmentImporter\Support\AsyncProcess;
 
 use function Laravel\Prompts\select;
 
@@ -78,6 +79,8 @@ class ImportEnvironmentCommand extends Command
             $this->finish();
         } catch (Exception $e) {
             $this->error($e->getMessage());
+
+            $this->afterRemoteDatabaseConnection();
 
             return static::FAILURE;
         }
@@ -298,13 +301,12 @@ class ImportEnvironmentCommand extends Command
         }
 
         if (!$this->dbTunnelProcess) {
-            $this->dbTunnelProcess = new Process([
+            $this->dbTunnelProcess = new AsyncProcess([
                 'ssh',
+                '-N',
                 '-L',
                 "{$this->dbSshTunnelPort()}:127.0.0.1:{$this->dbPort()}",
                 "{$this->getEnvironmentConfigValue('ssh_username')}@{$this->getEnvironmentConfigValue('ssh_host')}",
-                '-N',
-                '-f',
             ]);
         }
 
@@ -317,14 +319,14 @@ class ImportEnvironmentCommand extends Command
 
             // Wait for the tunnel to start.
             $tries = 10;
-            while (!$this->dbTunnelProcess->isRunning()) {
+            do {
                 if ($tries <= 0) {
                     throw new ImportEnvironmentException('Failed to start SSH tunnel');
                 }
 
                 $tries--;
                 sleep(2);
-            }
+            } while (!$this->dbTunnelProcess->isRunning());
 
             $this->info('[DB] SSH tunnel started.');
         }
@@ -743,13 +745,13 @@ class ImportEnvironmentCommand extends Command
         return (bool) $this->getEnvironmentConfigValue('db_use_ssh', false);
     }
 
-    protected function dbSshTunnelPort(): int
+    protected function dbSshTunnelPort(): string
     {
-        return (int) $this->getEnvironmentConfigValue('db_ssh_tunnel_port', 3307);
+        return $this->getEnvironmentConfigValue('db_ssh_tunnel_port', '3307');
     }
 
-    protected function dbPort(): int
+    protected function dbPort(): string
     {
-        return (int) $this->getEnvironmentConfigValue('db_port');
+        return $this->getEnvironmentConfigValue('db_port');
     }
 }
