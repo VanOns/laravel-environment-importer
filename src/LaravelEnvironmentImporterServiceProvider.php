@@ -3,7 +3,7 @@
 namespace VanOns\LaravelEnvironmentImporter;
 
 use Illuminate\Support\ServiceProvider;
-use VanOns\LaravelEnvironmentImporter\Commands\ImportEnvironment;
+use VanOns\LaravelEnvironmentImporter\Commands\ImportEnvironmentCommand;
 
 class LaravelEnvironmentImporterServiceProvider extends ServiceProvider
 {
@@ -11,20 +11,22 @@ class LaravelEnvironmentImporterServiceProvider extends ServiceProvider
     {
         $this->publishes(
             paths: [
-                __DIR__ . '/../config/import.php' => config_path('import.php'),
+                __DIR__ . '/../config/environment-importer.php' => config_path('environment-importer.php'),
             ],
-            groups: 'skeleton-config'
+            groups: 'laravel-environment-importer-config'
         );
 
         if ($this->app->runningInConsole()) {
             $this->commands([
-                ImportEnvironment::class,
+                ImportEnvironmentCommand::class,
             ]);
         }
     }
 
     public function register(): void
     {
-        //
+        $this->mergeConfigFrom(
+            __DIR__.'/../config/environment-importer.php', 'environment-importer'
+        );
     }
 }
