@@ -5,6 +5,7 @@ namespace VanOns\LaravelEnvironmentImporter\Commands;
 use Exception;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Arr;
 use VanOns\LaravelEnvironmentImporter\Exceptions\ImportEnvironmentException;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
@@ -19,7 +20,7 @@ use Symfony\Component\Process\Process;
 
 use function Laravel\Prompts\select;
 
-class ImportEnvironment extends Command
+class ImportEnvironmentCommand extends Command
 {
     /**
      * The name and signature of the console command.
@@ -29,7 +30,9 @@ class ImportEnvironment extends Command
     protected $signature = 'app:import-environment
                             {--target= : The target environment to import}
                             {--safe : Skip all prompts and keep all files after import}
-                            {--clean : Skip all prompts and clean up all files after import}';
+                            {--clean : Skip all prompts and clean up all files after import}
+                            {--skip-db : Skip importing the database}
+                            {--skip-files : Skip importing the files}';
 
     /**
      * The console command description.
@@ -42,11 +45,17 @@ class ImportEnvironment extends Command
 
     protected bool $clean = false;
 
+    protected bool $skipDb = false;
+
+    protected bool $skipFiles = false;
+
     protected Carbon $now;
 
     protected string $target;
 
     protected array $config;
+
+    protected array $environmentConfig;
 
     protected bool $backupDestination = false;
 
@@ -89,16 +98,24 @@ class ImportEnvironment extends Command
             $this->warn("\n--- Running in clean mode (removing DB dump and files after import) ---");
         }
 
+        $this->skipDb = $this->option('skip-db');
+        $this->skipFiles = $this->option('skip-files');
+
+        $this->config = config('environment-importer', []);
         $this->now = now();
 
         $environments = $this->getEnvironments();
+        if (empty($environments)) {
+            throw new ImportEnvironmentException('No environments found to import from');
+        }
+
         $this->target = $this->option('target') ?? select('Select the target environment', $environments);
-        if (!array_key_exists($this->target, config('import.environments', []))) {
+        if (!array_key_exists($this->target, $this->getConfigValue('environments', []))) {
             throw new ImportEnvironmentException("The \"{$this->target}\" environment does not exist");
         }
 
-        $this->config = config("import.environments.{$this->target}", []);
-        if (empty($this->config)) {
+        $this->environmentConfig = $this->getConfigValue("environments.{$this->target}", []);
+        if (empty($this->environmentConfig)) {
             throw new ImportEnvironmentException("No configuration found for the \"{$this->target}\" environment");
         }
 
@@ -121,7 +138,7 @@ class ImportEnvironment extends Command
         }
 
         // Create the cache folder.
-        $this->backupPath = base_path(config('import.backup_path', '.import') . '/' . $this->now->format('Y-m-d_H-i-s'));
+        $this->backupPath = base_path($this->getConfigValue('backup_path', '.import') . '/' . $this->now->format('Y-m-d_H-i-s'));
         $this->ensureDirectoryExists($this->backupPath);
     }
 
@@ -144,7 +161,7 @@ class ImportEnvironment extends Command
 
         $environments = [];
 
-        foreach (config('import.environments', []) as $environment => $config) {
+        foreach ($this->getConfigValue('environments', []) as $environment => $config) {
             // Only add the environment if all keys are present, and don't have an empty value.
             $isValid = collect($keys)->every(fn ($key) => !empty($config[$key]));
             if ($isValid) {
@@ -163,6 +180,11 @@ class ImportEnvironment extends Command
      */
     protected function importDatabase(): void
     {
+        if ($this->skipDb) {
+            $this->warn('[DB] Skipping database import.');
+            return;
+        }
+
         $this->line('[DB] Importing database...');
 
         $dumpPath = "{$this->backupPath}/db";
@@ -210,8 +232,10 @@ class ImportEnvironment extends Command
         $exclude = [];
         $files = [];
 
+        $this->line('[DB] Processing sensitive tables...');
+
         // Dump sensitive tables separately so we only get their CREATE statements, but not their data.
-        foreach (config('import.sensitive_tables', []) as $table) {
+        foreach ($this->getConfigValue('sensitive_tables', []) as $table) {
             $tableDumpFile = "{$dumpPath}/{$this->target}_{$table}.sql";
             $files[] = $tableDumpFile;
 
@@ -221,15 +245,17 @@ class ImportEnvironment extends Command
                 ->dumpToFile($tableDumpFile);
         }
 
+        $this->line('[DB] Processing other tables...');
+
         $baseDumpFile = "{$dumpPath}/{$this->target}_base.sql";
         $this->getDatabaseDumpClient()
             ->excludeTables($exclude)
             ->dumpToFile($baseDumpFile);
 
         $this->afterRemoteDatabaseConnection();
+        $this->buildDumpFile($dumpFile, $baseDumpFile, $files);
 
-        $finalDumpFile = file_get_contents($baseDumpFile) . implode("\n", array_map('file_get_contents', $files));
-        File::put($dumpFile, $finalDumpFile);
+        $this->line('[DB] Deleting intermediate dump files...');
 
         // Clean up the temporary dump files, we just want to keep the final file.
         File::delete([
@@ -247,31 +273,38 @@ class ImportEnvironment extends Command
     {
         $port = match (true) {
             $local => DB::getConfig('port'),
-            $this->config['db_use_ssh'] => 3307,
-            default => $this->config['db_port'],
+            $this->dbUseSsh() => $this->dbSshTunnelPort(),
+            default => $this->dbPort(),
         };
 
         return MySql::create()
-            ->setHost($local ? DB::getConfig('host') : $this->config['db_host'])
-            ->setDbName($local ? DB::getConfig('database') : $this->config['db_name'])
-            ->setUserName($local ? DB::getConfig('username') : $this->config['db_username'])
-            ->setPassword($local ? DB::getConfig('password') : $this->config['db_password'])
+            ->setHost($local ? DB::getConfig('host') : $this->getEnvironmentConfigValue('db_host'))
+            ->setDbName($local ? DB::getConfig('database') : $this->getEnvironmentConfigValue('db_name'))
+            ->setUserName($local ? DB::getConfig('username') : $this->getEnvironmentConfigValue('db_username'))
+            ->setPassword($local ? DB::getConfig('password') : $this->getEnvironmentConfigValue('db_password'))
             ->setPort($port)
-            ->setDumpBinaryPath(config('import.db_dump_binary_path', '/usr/bin'));
+            ->setDumpBinaryPath($this->getConfigValue('db_dump_binary_path', '/usr/bin'));
     }
 
     /**
      * Set up before connecting to the remote database.
+     *
+     * @throws ImportEnvironmentException
      */
     protected function beforeRemoteDatabaseConnection(): void
     {
-        if (!$this->config['db_use_ssh']) {
+        if (!$this->dbUseSsh()) {
             return;
         }
 
         if (!$this->dbTunnelProcess) {
             $this->dbTunnelProcess = new Process([
-                'ssh', '-L', "3307:127.0.0.1:{$this->config['db_port']}", "{$this->config['ssh_username']}@{$this->config['ssh_host']}", '-N', '-f',
+                'ssh',
+                '-L',
+                "{$this->dbSshTunnelPort()}:127.0.0.1:{$this->dbPort()}",
+                "{$this->getEnvironmentConfigValue('ssh_username')}@{$this->getEnvironmentConfigValue('ssh_host')}",
+                '-N',
+                '-f',
             ]);
         }
 
@@ -280,9 +313,20 @@ class ImportEnvironment extends Command
 
             $this->dbTunnelProcess->start();
 
-            $this->line('[DB] Waiting for tunnel to start...');
+            $this->line('[DB] Waiting for SSH tunnel to start...');
 
-            sleep(2);
+            // Wait for the tunnel to start.
+            $tries = 10;
+            while (!$this->dbTunnelProcess->isRunning()) {
+                if ($tries <= 0) {
+                    throw new ImportEnvironmentException('Failed to start SSH tunnel');
+                }
+
+                $tries--;
+                sleep(2);
+            }
+
+            $this->info('[DB] SSH tunnel started.');
         }
     }
 
@@ -291,13 +335,43 @@ class ImportEnvironment extends Command
      */
     protected function afterRemoteDatabaseConnection(): void
     {
-        if (!$this->config['db_use_ssh'] || !$this->dbTunnelProcess?->isRunning()) {
+        if (!$this->dbUseSsh() || !$this->dbTunnelProcess?->isRunning()) {
             return;
         }
 
         $this->line('[DB] Stopping SSH tunnel...');
 
         $this->dbTunnelProcess->stop();
+    }
+
+    /**
+     * Build the final dump file in chunks to prevent memory issues.
+     */
+    protected function buildDumpFile(string $finalDumpFile, string $baseDumpFile, array $files): void
+    {
+        $this->line('[DB] Building dump file...');
+
+        $baseDumpHandle = fopen($baseDumpFile, 'rb');
+        $finalDumpHandle = fopen($finalDumpFile, 'wb');
+
+        // Write the base dump file content to the final dump file.
+        while (!feof($baseDumpHandle)) {
+            fwrite($finalDumpHandle, fread($baseDumpHandle, 8192));
+        }
+
+        fclose($baseDumpHandle);
+
+        // Append the content of each file to the final dump file.
+        foreach ($files as $file) {
+            $fileHandle = fopen($file, 'rb');
+            while (!feof($fileHandle)) {
+                fwrite($finalDumpHandle, fread($fileHandle, 8192));
+            }
+
+            fclose($fileHandle);
+        }
+
+        fclose($finalDumpHandle);
     }
 
     /**
@@ -354,7 +428,7 @@ class ImportEnvironment extends Command
             $data = [];
 
             /** @phpstan-ignore-next-line */
-            $preserveUser = Str::contains($user->email, config('import.preserve_users_if_email_contains'));
+            $preserveUser = Str::contains($user->email, $this->getConfigValue('preserve_users_if_email_contains'));
             if (!$preserveUser) {
                 $name = $this->generateUniqueValue('users', 'first_name', 'User');
 
@@ -435,10 +509,17 @@ class ImportEnvironment extends Command
      */
     protected function importFiles(): void
     {
+        if ($this->skipFiles) {
+            $this->warn('[Files] Skipping file import.');
+            return;
+        }
+
         $this->line('[Files] Importing files...');
 
-        $this->importSingle('content/trees');
-        $this->importSingle('storage');
+        foreach ($this->getConfigValue('import_paths', []) as $path) {
+            $this->importSingle($path);
+        }
+
         $this->createFrameworkFolders();
 
         $this->info('[Files] Files imported.');
@@ -454,21 +535,21 @@ class ImportEnvironment extends Command
         $this->line("[Files] Importing \"{$path}\"...");
 
         // Make sure the source ends with a /.
-        $source = $this->config['ssh_base_path'] . "/{$path}" . (str_ends_with($path, '/') ? '' : '/');
+        $source = $this->getEnvironmentConfigValue('ssh_base_path') . "/{$path}" . (str_ends_with($path, '/') ? '' : '/');
         $destination = base_path($path);
 
         $this->backupDestination($destination, $path);
 
         $excludes = '';
-        if (!empty($excludePaths = config('import.rsync_exclude_paths', []))) {
+        if (!empty($excludePaths = $this->getConfigValue('rsync_exclude_paths', []))) {
             $excludes = '--exclude="' . implode('" --exclude="', $excludePaths) . '"';
         }
 
         $command = sprintf(
             'rsync -zaHLK --progress --stats -e "ssh" %s %s@%s:%s %s',
             $excludes,
-            $this->config['ssh_username'],
-            $this->config['ssh_host'],
+            $this->getEnvironmentConfigValue('ssh_username'),
+            $this->getEnvironmentConfigValue('ssh_host'),
             $source,
             $destination
         );
@@ -606,6 +687,22 @@ class ImportEnvironment extends Command
     }
 
     /**
+     * Get a value from the configuration.
+     */
+    protected function getConfigValue(string $key, mixed $default = null): mixed
+    {
+        return Arr::get($this->config, $key, $default);
+    }
+
+    /**
+     * Get a value from the target environment configuration.
+     */
+    protected function getEnvironmentConfigValue(string $key, mixed $default = null): mixed
+    {
+        return Arr::get($this->environmentConfig, $key, $default);
+    }
+
+    /**
      * Generate a unique value for a column in a table.
      */
     protected function generateUniqueValue(string $table, string $column, string $value): string
@@ -639,5 +736,20 @@ class ImportEnvironment extends Command
         $model = config('auth.providers.users.model');
 
         return app($model);
+    }
+
+    protected function dbUseSsh(): bool
+    {
+        return (bool) $this->getEnvironmentConfigValue('db_use_ssh', false);
+    }
+
+    protected function dbSshTunnelPort(): int
+    {
+        return (int) $this->getEnvironmentConfigValue('db_ssh_tunnel_port', 3307);
+    }
+
+    protected function dbPort(): int
+    {
+        return (int) $this->getEnvironmentConfigValue('db_port');
     }
 }
