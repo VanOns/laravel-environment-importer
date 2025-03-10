@@ -2,21 +2,19 @@
 
 namespace VanOns\LaravelEnvironmentImporter\Commands;
 
-use Exception;
-use Illuminate\Contracts\Auth\Authenticatable;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Arr;
-use VanOns\LaravelEnvironmentImporter\Exceptions\ImportEnvironmentException;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Console\Command;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Schema;
 use Spatie\DbDumper\Databases\MySql;
 use Spatie\DbDumper\Exceptions\CannotSetParameter;
 use Symfony\Component\Process\Process;
+use VanOns\LaravelEnvironmentImporter\Exceptions\ImportEnvironmentException;
+use VanOns\LaravelEnvironmentImporter\Processors\DataProcessor;
 use VanOns\LaravelEnvironmentImporter\Support\AsyncProcess;
 
 use function Laravel\Prompts\select;
@@ -199,7 +197,7 @@ class ImportEnvironmentCommand extends Command
         $this->dumpRemoteDatabase($dumpPath, $dumpFile);
         $this->wipeLocalDatabase();
         $this->importDatabaseDump($dumpFile);
-        $this->replaceSensitiveDataInDatabase();
+        $this->processDatabaseData();
         $this->afterDatabaseImport($dumpPath);
         $this->runDatabaseMigrations();
 
@@ -225,6 +223,7 @@ class ImportEnvironmentCommand extends Command
      * Dump the remote database.
      *
      * @throws CannotSetParameter
+     * @throws ImportEnvironmentException
      */
     protected function dumpRemoteDatabase(string $dumpPath, string $dumpFile): void
     {
@@ -280,6 +279,7 @@ class ImportEnvironmentCommand extends Command
             default => $this->dbPort(),
         };
 
+        /** @phpstan-ignore-next-line */
         return MySql::create()
             ->setHost($local ? DB::getConfig('host') : $this->getEnvironmentConfigValue('db_host'))
             ->setDbName($local ? DB::getConfig('database') : $this->getEnvironmentConfigValue('db_name'))
@@ -419,54 +419,47 @@ class ImportEnvironmentCommand extends Command
     }
 
     /**
-     * Replace sensitive data in the database.
+     * Process the data in the database.
+     *
+     * @throws ImportEnvironmentException
      */
-    protected function replaceSensitiveDataInDatabase(): void
+    protected function processDatabaseData(): void
     {
-        $this->line('[DB] Replacing sensitive data in database...');
+        $processors = $this->getConfigValue('data_processors', []);
 
-        /** @var Authenticatable|Model $user */
-        foreach ($this->getUserModel()->query()->cursor() as $user) {
-            $data = [];
-
-            /** @phpstan-ignore-next-line */
-            $preserveUser = Str::contains($user->email, $this->getConfigValue('preserve_users_if_email_contains'));
-            if (!$preserveUser) {
-                $name = $this->generateUniqueValue('users', 'first_name', 'User');
-
-                $data['first_name'] = $name;
-                $data['last_name'] = $name;
-                $data['email'] = strtolower($name) . '@example.com';
-            }
-
-            // In local environments we want to reset the password to 'password'.
-            if (app()->isLocal()) {
-                $data['password'] = Hash::make('password');
-            }
-
-            // Only update if any data changed.
-            if (!empty($data)) {
-                /** @phpstan-ignore-next-line */
-                DB::table('users')->where('id', $user->id)->update($data);
-            }
-
-            $this->maybeHandleStatamicTwoFactor($user);
-        }
-
-        $this->info('[DB] Replaced sensitive data in database.');
-    }
-
-    /**
-     * If the project is using Statamic and the Two Factor plugin from MityDigital, disable two-factor authentication.
-     */
-    protected function maybeHandleStatamicTwoFactor(Authenticatable|Model $user): void
-    {
-        if (!class_exists('Statamic\Facades\User') || !class_exists('MityDigital\StatamicTwoFactor\Actions\DisableTwoFactorAuthentication')) {
+        if (empty($processors)) {
+            $this->line('[DB] No data processors found, skipping data processing.');
             return;
         }
 
-        // Disable two-factor authentication so you log in as the user.
-        app(\MityDigital\StatamicTwoFactor\Actions\DisableTwoFactorAuthentication::class)(\Statamic\Facades\User::fromUser($user));
+        $this->line('[DB] Processing data in database...');
+
+        $tables = collect(Schema::getTables())->pluck('name')->toArray();
+
+        foreach ($processors as $key => $value) {
+            if (is_int($key)) {
+                $processorClass = $value;
+                $options = [];
+            } else {
+                $processorClass = $key;
+                $options = $value;
+            }
+
+            if (!is_a($processorClass, DataProcessor::class, true)) {
+                throw new ImportEnvironmentException("The processor \"{$processorClass}\" must extend \"VanOns\LaravelEnvironmentImporter\Processors\DataProcessor\"");
+            }
+
+            foreach ($tables as $table) {
+                $processor = new $processorClass($table, $options);
+
+                if ($processor->applies()) {
+                    $this->line("[DB] Processing data for table \"{$table}\" using \"{$processorClass}\"...");
+                    $processor->process();
+                }
+            }
+        }
+
+        $this->info('[DB] Processed data in database.');
     }
 
     /**
@@ -705,20 +698,6 @@ class ImportEnvironmentCommand extends Command
     }
 
     /**
-     * Generate a unique value for a column in a table.
-     */
-    protected function generateUniqueValue(string $table, string $column, string $value): string
-    {
-        $uniqueValue = uniqid($value . '_');
-
-        while (DB::table($table)->where($column, $uniqueValue)->exists()) {
-            $uniqueValue = uniqid($value . '_');
-        }
-
-        return $uniqueValue;
-    }
-
-    /**
      * Ensure a directory exists.
      *
      * @throws ImportEnvironmentException
@@ -728,16 +707,6 @@ class ImportEnvironmentCommand extends Command
         if (!File::exists($path) && !File::makeDirectory($path, recursive: true)) {
             throw new ImportEnvironmentException("Failed to create cache directory \"{$path}\"");
         }
-    }
-
-    /**
-     * Get the user model.
-     */
-    protected function getUserModel(): Authenticatable|Model
-    {
-        $model = config('auth.providers.users.model');
-
-        return app($model);
     }
 
     protected function dbUseSsh(): bool

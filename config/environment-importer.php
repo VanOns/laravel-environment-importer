@@ -102,16 +102,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Preserve Users If Email Contains
+    | Data Processors
     |--------------------------------------------------------------------------
     |
-    | Here you can define any strings that will be used to determine if a user
-    | should be preserved or anonymized. This is done by taking a user's email
-    | and checking if it matches any of the strings defined below.
+    | Here you can define any processors that should be run on the data when
+    | importing it into the local environment.
     |
     */
 
-    'preserve_users_if_email_contains' => [],
+    'data_processors' => [
+        \VanOns\LaravelEnvironmentImporter\Processors\AnonymizeUsers::class,
+
+        // If you want to provide patterns for users to be preserved:
+        // \VanOns\LaravelEnvironmentImporter\Processors\AnonymizeUsers::class => ['@example.com'],
+    ],
 
     /*
     |--------------------------------------------------------------------------
