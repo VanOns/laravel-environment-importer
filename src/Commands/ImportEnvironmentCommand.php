@@ -26,7 +26,7 @@ class ImportEnvironmentCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'app:import-environment
+    protected $signature = 'environment:import
                             {--target= : The target environment to import}
                             {--safe : Skip all prompts and keep all files after import}
                             {--clean : Skip all prompts and clean up all files after import}

@@ -13,7 +13,7 @@ class LaravelEnvironmentImporterServiceProvider extends ServiceProvider
             paths: [
                 __DIR__ . '/../config/environment-importer.php' => config_path('environment-importer.php'),
             ],
-            groups: 'laravel-environment-importer-config'
+            groups: 'environment-importer-config'
         );
 
         if ($this->app->runningInConsole()) {
