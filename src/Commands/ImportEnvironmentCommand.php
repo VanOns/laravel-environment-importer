@@ -157,7 +157,6 @@ class ImportEnvironmentCommand extends Command
             'db_username',
             'db_password',
             'db_port',
-            'db_use_ssh',
         ];
 
         $environments = [];
