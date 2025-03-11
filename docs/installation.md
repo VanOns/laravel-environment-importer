@@ -22,7 +22,7 @@ composer require van-ons/laravel-environment-importer
 Next, publish the configuration file:
 
 ```bash
-php artisan vendor:publish --tag="translations-sync-config"
+php artisan vendor:publish --tag="environment-importer-config"
 ```
 
 Finally, open the configuration file (`config/environment-importer.php`) and adjust it to your needs.
