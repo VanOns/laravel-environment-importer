@@ -52,9 +52,9 @@ class ImportEnvironmentCommand extends Command
 
     protected string $target;
 
-    protected array $config;
+    protected array $config = [];
 
-    protected array $environmentConfig;
+    protected array $environmentConfig = [];
 
     protected bool $backupDestination = false;
 
@@ -337,7 +337,7 @@ class ImportEnvironmentCommand extends Command
      */
     protected function afterRemoteDatabaseConnection(): void
     {
-        if (!$this->dbUseSsh() || !$this->dbTunnelProcess?->isRunning()) {
+        if (!$this->dbTunnelProcess?->isRunning() || !$this->dbUseSsh()) {
             return;
         }
 
