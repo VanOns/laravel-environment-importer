@@ -1,11 +1,11 @@
-[//]: # (<p align="center"><img src="art/social-card.png" alt="Social card of Laravel Environment Importer"></p>)
+<p align="center"><img src="art/social-card.png" alt="Social card of Laravel Environment Importer"></p>
 
 # Laravel Environment Importer
 
-[//]: # ([![Latest Version on Github]&#40;https://img.shields.io/github/release/VanOns/laravel-environment-importer.svg?style=flat-square&#41;]&#40;https://github.com/VanOns/laravel-environment-importer/releases&#41;)
-[//]: # ([![Total Downloads]&#40;https://img.shields.io/packagist/dt/van-ons/laravel-environment-importer.svg?style=flat-square&#41;]&#40;https://packagist.org/packages/van-ons/laravel-environment-importer&#41;)
-[//]: # ([![Github issues]&#40;https://img.shields.io/github/issues/VanOns/laravel-environment-importer?style=flat-square&#41;]&#40;https://github.com/VanOns/laravel-environment-importer/issues&#41;)
-[//]: # ([![License]&#40;https://img.shields.io/github/license/VanOns/laravel-environment-importer?style=flat-square&#41;]&#40;https://github.com/VanOns/laravel-environment-importer/blob/main/LICENSE.md&#41;)
+[![Latest Version on Github](https://img.shields.io/github/release/VanOns/laravel-environment-importer.svg?style=flat-square)](https://github.com/VanOns/laravel-environment-importer/releases)
+[![Total Downloads](https://img.shields.io/packagist/dt/van-ons/laravel-environment-importer.svg?style=flat-square)](https://packagist.org/packages/van-ons/laravel-environment-importer)
+[![Github issues](https://img.shields.io/github/issues/VanOns/laravel-environment-importer?style=flat-square)](https://github.com/VanOns/laravel-environment-importer/issues)
+[![License](https://img.shields.io/github/license/VanOns/laravel-environment-importer?style=flat-square)](https://github.com/VanOns/laravel-environment-importer/blob/main/LICENSE.md)
 
 A Laravel package for easy importing of a configured environment.
 
