@@ -35,7 +35,7 @@
     },
     "scripts": {
         "analyse": "vendor/bin/phpstan analyse",
-        "fix": "vendor/bin/php-cs-fixer fix"
+        "format": "vendor/bin/php-cs-fixer fix"
     },
     "extra": {
         "laravel": {

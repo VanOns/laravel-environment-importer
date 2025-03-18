@@ -532,8 +532,20 @@ class ImportEnvironmentCommand extends Command
      *
      * @throws ImportEnvironmentException
      */
-    protected function importSingle(string $path): void
+    protected function importSingle(string|array $importPath): void
     {
+        $path = $importPath;
+        $excludes = [];
+
+        if (is_array($importPath)) {
+            $path = $importPath['path'] ?? null;
+            $excludes = $importPath['excludes'] ?? [];
+        }
+
+        if (empty($path)) {
+            throw new ImportEnvironmentException('No path defined for file import');
+        }
+
         $this->line("[Files] Importing \"{$path}\"...");
 
         // Make sure the source ends with a /.
@@ -542,15 +554,15 @@ class ImportEnvironmentCommand extends Command
 
         $this->backupDestination($destination, $path);
 
-        $excludes = '';
-        if (!empty($excludePaths = $this->getConfigValue('rsync_exclude_paths', []))) {
-            $excludes = '--exclude="' . implode('" --exclude="', $excludePaths) . '"';
+        $excludesArg = '';
+        if (!empty($excludes)) {
+            $excludesArg = '--exclude="' . implode('" --exclude="', $excludes) . '"';
         }
 
         $command = sprintf(
-            'rsync -zaHLK --progress --stats -e "ssh%s" %s %s@%s:%s %s',
+            'rsync -zaHLK --progress --stats -e "ssh %s" %s %s@%s:%s %s',
             $this->sshAuth(),
-            $excludes,
+            $excludesArg,
             $this->getEnvironmentConfigValue('ssh_username'),
             $this->getEnvironmentConfigValue('ssh_host'),
             $source,
@@ -720,11 +732,11 @@ class ImportEnvironmentCommand extends Command
     protected function sshAuth(): string
     {
         if ($sshPassword = $this->getEnvironmentConfigValue('ssh_password')) {
-            return " -p {$sshPassword}";
+            return "-p {$sshPassword}";
         }
 
         if ($sshKey = $this->getEnvironmentConfigValue('ssh_key')) {
-            return " -i {$sshKey}";
+            return "-i {$sshKey}";
         }
 
         return '';
