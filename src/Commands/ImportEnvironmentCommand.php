@@ -148,6 +148,7 @@ class ImportEnvironmentCommand extends Command
      */
     protected function getEnvironments(): array
     {
+        // These keys must be present in each environment.
         $keys = [
             'ssh_host',
             'ssh_username',
@@ -159,11 +160,17 @@ class ImportEnvironmentCommand extends Command
             'db_port',
         ];
 
+        // At least one of the keys in each array must be present in each environment.
+        $eitherKeys = [
+            ['ssh_key', 'ssh_password'],
+        ];
+
         $environments = [];
 
         foreach ($this->getConfigValue('environments', []) as $environment => $config) {
-            // Only add the environment if all keys are present, and don't have an empty value.
-            $isValid = collect($keys)->every(fn ($key) => !empty($config[$key]));
+            $isValid = collect($keys)->every(fn (string $key) => !empty($config[$key]))
+                && collect($eitherKeys)->every(fn (array $keys) => collect($keys)->some(fn (string $key) => !empty($config[$key])));
+
             if ($isValid) {
                 $environments[] = $environment;
             }
@@ -306,6 +313,7 @@ class ImportEnvironmentCommand extends Command
                 '-L',
                 "{$this->dbSshTunnelPort()}:127.0.0.1:{$this->dbPort()}",
                 "{$this->getEnvironmentConfigValue('ssh_username')}@{$this->getEnvironmentConfigValue('ssh_host')}",
+                $this->sshAuth(),
             ]);
         }
 
@@ -540,7 +548,8 @@ class ImportEnvironmentCommand extends Command
         }
 
         $command = sprintf(
-            'rsync -zaHLK --progress --stats -e "ssh" %s %s@%s:%s %s',
+            'rsync -zaHLK --progress --stats -e "ssh%s" %s %s@%s:%s %s',
+            $this->sshAuth(),
             $excludes,
             $this->getEnvironmentConfigValue('ssh_username'),
             $this->getEnvironmentConfigValue('ssh_host'),
@@ -706,6 +715,19 @@ class ImportEnvironmentCommand extends Command
         if (!File::exists($path) && !File::makeDirectory($path, recursive: true)) {
             throw new ImportEnvironmentException("Failed to create cache directory \"{$path}\"");
         }
+    }
+
+    protected function sshAuth(): string
+    {
+        if ($sshPassword = $this->getEnvironmentConfigValue('ssh_password')) {
+            return " -p {$sshPassword}";
+        }
+
+        if ($sshKey = $this->getEnvironmentConfigValue('ssh_key')) {
+            return " -i {$sshKey}";
+        }
+
+        return '';
     }
 
     protected function dbUseSsh(): bool
