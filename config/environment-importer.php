@@ -91,8 +91,7 @@ return [
     */
 
     'import_paths' => [
-        [
-            'path' => 'storage',
+        'storage' => [
             'excludes' => ['framework/***'],
         ],
     ],

@@ -518,8 +518,8 @@ class ImportEnvironmentCommand extends Command
 
         $this->line('[Files] Importing files...');
 
-        foreach ($this->getConfigValue('import_paths', []) as $path) {
-            $this->importSingle($path);
+        foreach ($this->getConfigValue('import_paths', []) as $key => $extra) {
+            $this->importSingle($key, $extra);
         }
 
         $this->createFrameworkFolders();
@@ -532,18 +532,18 @@ class ImportEnvironmentCommand extends Command
      *
      * @throws ImportEnvironmentException
      */
-    protected function importSingle(string|array $importPath): void
+    protected function importSingle(string|int $key, string|array $extra): void
     {
-        $path = $importPath;
+        $path = $extra;
         $excludes = [];
 
-        if (is_array($importPath)) {
-            $path = $importPath['path'] ?? null;
-            $excludes = $importPath['excludes'] ?? [];
+        if (!is_int($key)) {
+            $path = $key;
+            $excludes = $extra['excludes'] ?? [];
         }
 
-        if (empty($path)) {
-            throw new ImportEnvironmentException('No path defined for file import');
+        if (empty($path) || !is_string($path)) {
+            throw new ImportEnvironmentException('No valid path defined for file import');
         }
 
         $this->line("[Files] Importing \"{$path}\"...");
