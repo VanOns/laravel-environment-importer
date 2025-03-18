@@ -17,6 +17,8 @@ return [
 
             'ssh_host' => env('LEI_STAGING_SSH_HOST'),
             'ssh_username' => env('LEI_STAGING_SSH_USERNAME'),
+            'ssh_key' => env('LEI_STAGING_SSH_KEY', '~/.ssh/id_rsa'),
+            'ssh_password' => env('LEI_STAGING_SSH_PASSWORD'), // Overrules ssh_key if present
             'ssh_base_path' => env('LEI_STAGING_SSH_BASE_PATH'),
 
             'db_host' => env('LEI_STAGING_DB_HOST'),
@@ -33,6 +35,8 @@ return [
 
             'ssh_host' => env('LEI_PRODUCTION_SSH_HOST'),
             'ssh_username' => env('LEI_PRODUCTION_SSH_USERNAME'),
+            'ssh_key' => env('LEI_PRODUCTION_SSH_KEY', '~/.ssh/id_rsa'),
+            'ssh_password' => env('LEI_PRODUCTION_SSH_PASSWORD'), // Overrules ssh_key if present
             'ssh_base_path' => env('LEI_PRODUCTION_SSH_BASE_PATH'),
 
             'db_host' => env('LEI_PRODUCTION_DB_HOST'),
