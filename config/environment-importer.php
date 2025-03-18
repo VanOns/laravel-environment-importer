@@ -84,12 +84,17 @@ return [
     |--------------------------------------------------------------------------
     |
     | Here you can define the paths that should be imported. Each path is
-    | relative to the root of the project.
+    | relative to the root of the project. For each import path you can define
+    | an array of excludes, which are paths that should be skipped. If you do
+    | not want to exclude anything, you can just define the path as a string.
     |
     */
 
     'import_paths' => [
-        'storage',
+        [
+            'path' => 'storage',
+            'excludes' => ['framework/***'],
+        ],
     ],
 
     /*
@@ -119,21 +124,6 @@ return [
 
         // If you want to provide patterns for users to be preserved:
         // \VanOns\LaravelEnvironmentImporter\Processors\AnonymizeUsers::class => ['@example.com'],
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Rsync Exclude Paths
-    |--------------------------------------------------------------------------
-    |
-    | Here you can define any paths that should be excluded by rsync when
-    | syncing files.
-    |
-    */
-
-    'rsync_exclude_paths' => [
-        'cache/***',
-        'storage/framework/***',
     ],
 
 ];
