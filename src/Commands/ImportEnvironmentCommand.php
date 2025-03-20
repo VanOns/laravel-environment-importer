@@ -599,12 +599,11 @@ class ImportEnvironmentCommand extends Command
                 $this->newLine(2);
                 $this->info("[Files] {$transferred} file(s) transferred | " . ($total - $transferred) . ' file(s) skipped.');
             }
-
-            // Throw an error if the process fails.
-            if ($type === Process::ERR) {
-                throw new ImportEnvironmentException("rsync failed: {$buffer}");
-            }
         });
+
+        if (!$process->isSuccessful()) {
+            throw new ImportEnvironmentException("rsync failed: {$process->getErrorOutput()}");
+        }
 
         $rsyncEnd = now();
 
