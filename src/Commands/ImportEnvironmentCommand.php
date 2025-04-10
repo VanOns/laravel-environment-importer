@@ -199,8 +199,8 @@ class ImportEnvironmentCommand extends Command
 
         $dumpFile = "{$dumpPath}/{$this->target}.sql";
 
-        $this->dumpLocalDatabase($dumpPath);
-        $this->dumpRemoteDatabase($dumpPath, $dumpFile);
+        $this->createLocalBackupDump($dumpPath);
+        $this->createDumpForImport($dumpPath, $dumpFile);
         $this->wipeLocalDatabase();
         $this->importDatabaseDump($dumpFile);
         $this->processDatabaseData();
@@ -213,7 +213,7 @@ class ImportEnvironmentCommand extends Command
     /**
      * Dump the local database.
      */
-    protected function dumpLocalDatabase(string $dumpPath): void
+    protected function createLocalBackupDump(string $dumpPath): void
     {
         $this->line('[DB] Backing up local database...');
 
@@ -231,14 +231,27 @@ class ImportEnvironmentCommand extends Command
      * @throws CannotSetParameter
      * @throws ImportEnvironmentException
      */
-    protected function dumpRemoteDatabase(string $dumpPath, string $dumpFile): void
+    protected function createDumpForImport(string $dumpPath, string $dumpFile): void
     {
         $this->line('[DB] Dumping target database...');
 
-        $this->beforeRemoteDatabaseConnection();
-
         $exclude = [];
         $files = [];
+
+        $this->line('[DB] Processing environment tables...');
+
+        foreach ($this->getConfigValue('environment_tables', []) as $table) {
+            $tableDumpFile = "{$dumpPath}/local_{$table}.sql";
+            $files[] = $tableDumpFile;
+
+            $this->getDatabaseDumpClient(true)
+                ->includeTables([$table])
+                ->dumpToFile($tableDumpFile);
+
+            $exclude[] = $table;
+        }
+
+        $this->beforeRemoteDatabaseConnection();
 
         $this->line('[DB] Processing sensitive tables...');
 
