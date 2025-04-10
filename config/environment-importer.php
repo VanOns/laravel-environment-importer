@@ -57,7 +57,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | Here you can define the path to where the binary lives, which will be used to
-    | dump the database. On MacOS you can install this using Homebrew:
+    | dump the database. On macOS, you can install this using Homebrew:
     | https://formulae.brew.sh/formula/mysql-client
     |
     | NOTE: Don't include the binary itself in the path.
