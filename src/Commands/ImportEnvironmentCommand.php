@@ -251,6 +251,8 @@ class ImportEnvironmentCommand extends Command
                 ->doNotDumpData()
                 ->includeTables([$table])
                 ->dumpToFile($tableDumpFile);
+
+            $exclude[] = $table;
         }
 
         $this->line('[DB] Processing other tables...');
