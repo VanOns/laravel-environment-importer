@@ -238,34 +238,40 @@ class ImportEnvironmentCommand extends Command
         $exclude = [];
         $files = [];
 
-        $this->line('[DB] Processing environment tables...');
+        $environmentTables = $this->getConfigValue('environment_tables', []);
+        if (!empty($environmentTables)) {
+            $this->line('[DB] Processing environment tables...');
 
-        foreach ($this->getConfigValue('environment_tables', []) as $table) {
-            $tableDumpFile = "{$dumpPath}/local_{$table}.sql";
-            $files[] = $tableDumpFile;
+            foreach ($environmentTables as $table) {
+                $tableDumpFile = "{$dumpPath}/local_{$table}.sql";
+                $files[] = $tableDumpFile;
 
-            $this->getDatabaseDumpClient(true)
-                ->includeTables([$table])
-                ->dumpToFile($tableDumpFile);
+                $this->getDatabaseDumpClient(true)
+                    ->includeTables([$table])
+                    ->dumpToFile($tableDumpFile);
 
-            $exclude[] = $table;
+                $exclude[] = $table;
+            }
         }
 
         $this->beforeRemoteDatabaseConnection();
 
-        $this->line('[DB] Processing sensitive tables...');
+        $sensitiveTables = $this->getConfigValue('sensitive_tables', []);
+        if (!empty($sensitiveTables)) {
+            $this->line('[DB] Processing sensitive tables...');
 
-        // Dump sensitive tables separately so we only get their CREATE statements, but not their data.
-        foreach ($this->getConfigValue('sensitive_tables', []) as $table) {
-            $tableDumpFile = "{$dumpPath}/{$this->target}_{$table}.sql";
-            $files[] = $tableDumpFile;
+            // Dump sensitive tables separately so we only get their CREATE statements, but not their data.
+            foreach ($sensitiveTables as $table) {
+                $tableDumpFile = "{$dumpPath}/{$this->target}_{$table}.sql";
+                $files[] = $tableDumpFile;
 
-            $this->getDatabaseDumpClient()
-                ->doNotDumpData()
-                ->includeTables([$table])
-                ->dumpToFile($tableDumpFile);
+                $this->getDatabaseDumpClient()
+                    ->doNotDumpData()
+                    ->includeTables([$table])
+                    ->dumpToFile($tableDumpFile);
 
-            $exclude[] = $table;
+                $exclude[] = $table;
+            }
         }
 
         $this->line('[DB] Processing other tables...');
