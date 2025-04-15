@@ -98,15 +98,16 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Sensitive Tables
+    | Empty Tables
     |--------------------------------------------------------------------------
     |
-    | Here you can define any tables that should have their data skipped when
+    | Here you can define any tables that should have their data cleared when
     | dumping the database.
+    | This could for example be used for tables containing sensitive data.
     |
     */
 
-    'sensitive_tables' => [],
+    'empty_tables' => [],
 
     /*
     |--------------------------------------------------------------------------

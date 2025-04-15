@@ -256,12 +256,18 @@ class ImportEnvironmentCommand extends Command
 
         $this->beforeRemoteDatabaseConnection();
 
-        $sensitiveTables = $this->getConfigValue('sensitive_tables', []);
-        if (!empty($sensitiveTables)) {
-            $this->line('[DB] Processing sensitive tables...');
+        $emptyTables = $this->getConfigValue('empty_tables', []);
+
+        // Fallback to old config key for backwards compatibility
+        if (empty($emptyTables)) {
+            $emptyTables = $this->getConfigValue('sensitive_tables', []);
+        }
+
+        if (!empty($emptyTables)) {
+            $this->line('[DB] Processing empty tables...');
 
             // Dump sensitive tables separately so we only get their CREATE statements, but not their data.
-            foreach ($sensitiveTables as $table) {
+            foreach ($emptyTables as $table) {
                 $tableDumpFile = "{$dumpPath}/{$this->target}_{$table}.sql";
                 $files[] = $tableDumpFile;
 
