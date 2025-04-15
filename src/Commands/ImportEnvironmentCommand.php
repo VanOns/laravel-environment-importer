@@ -238,11 +238,11 @@ class ImportEnvironmentCommand extends Command
         $exclude = [];
         $files = [];
 
-        $environmentTables = $this->getConfigValue('environment_tables', []);
-        if (!empty($environmentTables)) {
-            $this->line('[DB] Processing environment tables...');
+        $persistTables = $this->getConfigValue('persist_tables', []);
+        if (!empty($persistTables)) {
+            $this->line('[DB] Processing persist tables...');
 
-            foreach ($environmentTables as $table) {
+            foreach ($persistTables as $table) {
                 $tableDumpFile = "{$dumpPath}/local_{$table}.sql";
                 $files[] = $tableDumpFile;
 

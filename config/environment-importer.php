@@ -110,15 +110,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Environment Tables
+    | Persist Tables
     |--------------------------------------------------------------------------
     |
     | Here you can define any tables that should have their data persist when
     | dumping the database.
+    | This could for example be used for tables containing configuration for
+    | a specific environment, that should not be imported to a different
+    | environment.
     |
     */
 
-    'environment_tables' => [],
+    'persist_tables' => [],
 
     /*
     |--------------------------------------------------------------------------
