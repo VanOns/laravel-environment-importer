@@ -57,7 +57,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | Here you can define the path to where the binary lives, which will be used to
-    | dump the database. On MacOS you can install this using Homebrew:
+    | dump the database. On macOS, you can install this using Homebrew:
     | https://formulae.brew.sh/formula/mysql-client
     |
     | NOTE: Don't include the binary itself in the path.
@@ -98,15 +98,31 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Sensitive Tables
+    | Empty Tables
     |--------------------------------------------------------------------------
     |
-    | Here you can define any tables that should have their data skipped when
+    | Here you can define any tables that should have their data cleared when
     | dumping the database.
+    | This could for example be used for tables containing sensitive data.
     |
     */
 
-    'sensitive_tables' => [],
+    'empty_tables' => [],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Persist Tables
+    |--------------------------------------------------------------------------
+    |
+    | Here you can define any tables that should have their data persist when
+    | dumping the database.
+    | This could for example be used for tables containing configuration for
+    | a specific environment, that should not be imported to a different
+    | environment.
+    |
+    */
+
+    'persist_tables' => [],
 
     /*
     |--------------------------------------------------------------------------
