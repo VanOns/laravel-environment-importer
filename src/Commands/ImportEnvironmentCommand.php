@@ -780,6 +780,6 @@ class ImportEnvironmentCommand extends Command
 
     protected function dbPort(): string
     {
-        return $this->getEnvironmentConfigValue('db_port');
+        return $this->getEnvironmentConfigValue('db_port', '3306');
     }
 }

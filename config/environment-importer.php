@@ -25,7 +25,7 @@ return [
             'db_name' => env('LEI_STAGING_DB_NAME'),
             'db_username' => env('LEI_STAGING_DB_USERNAME'),
             'db_password' => env('LEI_STAGING_DB_PASSWORD'),
-            'db_port' => env('LEI_STAGING_DB_PORT'),
+            'db_port' => env('LEI_STAGING_DB_PORT', '3306'),
             'db_use_ssh' => (bool) env('LEI_STAGING_DB_USE_SSH', false),
             'db_ssh_tunnel_port' => env('LEI_STAGING_DB_SSH_TUNNEL_PORT', '3307'),
 
@@ -43,7 +43,7 @@ return [
             'db_name' => env('LEI_PRODUCTION_DB_NAME'),
             'db_username' => env('LEI_PRODUCTION_DB_USERNAME'),
             'db_password' => env('LEI_PRODUCTION_DB_PASSWORD'),
-            'db_port' => env('LEI_PRODUCTION_DB_PORT'),
+            'db_port' => env('LEI_PRODUCTION_DB_PORT', '3306'),
             'db_use_ssh' => (bool) env('LEI_PRODUCTION_DB_USE_SSH', false),
             'db_ssh_tunnel_port' => env('LEI_PRODUCTION_DB_SSH_TUNNEL_PORT', '3307'),
 
