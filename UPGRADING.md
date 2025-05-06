@@ -13,4 +13,9 @@ across such a case, please let us know by [opening an issue][issues], or by addi
 * Run `php artisan migrate` to update the database.
 -->
 
+# v0.4.0
+
+* The `sensitive_tables` config key was renamed to `empty_tables`. A fallback has been put in place that will use the
+old key, in case the new key is empty, but it is recommended to update your config.
+
 [issues]: https://github.com/VanOns/laravel-environment-importer/issues
