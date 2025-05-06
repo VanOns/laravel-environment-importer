@@ -15,3 +15,8 @@ The command supports the following flags:
 | `--clean`      | Skip all prompts and clean up all files after import |
 | `--skip-db`    | Skip importing the database                          |
 | `--skip-files` | Skip importing the files                             |
+
+## Notifications
+
+It is possible to receive email notifications when the import succeeds or fails. To do that, make sure to configure
+the `notifications` section in the configuration file.
