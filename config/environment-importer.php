@@ -12,9 +12,7 @@ return [
     */
 
     'environments' => [
-
         'staging' => [
-
             'ssh_host' => env('LEI_STAGING_SSH_HOST'),
             'ssh_username' => env('LEI_STAGING_SSH_USERNAME'),
             'ssh_key' => env('LEI_STAGING_SSH_KEY', '~/.ssh/id_rsa'),
@@ -28,11 +26,9 @@ return [
             'db_port' => env('LEI_STAGING_DB_PORT', '3306'),
             'db_use_ssh' => (bool) env('LEI_STAGING_DB_USE_SSH', false),
             'db_ssh_tunnel_port' => env('LEI_STAGING_DB_SSH_TUNNEL_PORT', '3307'),
-
         ],
 
         'production' => [
-
             'ssh_host' => env('LEI_PRODUCTION_SSH_HOST'),
             'ssh_username' => env('LEI_PRODUCTION_SSH_USERNAME'),
             'ssh_key' => env('LEI_PRODUCTION_SSH_KEY', '~/.ssh/id_rsa'),
@@ -46,9 +42,7 @@ return [
             'db_port' => env('LEI_PRODUCTION_DB_PORT', '3306'),
             'db_use_ssh' => (bool) env('LEI_PRODUCTION_DB_USE_SSH', false),
             'db_ssh_tunnel_port' => env('LEI_PRODUCTION_DB_SSH_TUNNEL_PORT', '3307'),
-
         ],
-
     ],
 
     /*
@@ -139,6 +133,31 @@ return [
 
         // If you want to provide patterns for users to be preserved:
         // \VanOns\LaravelEnvironmentImporter\Processors\AnonymizeUsers::class => ['@example.com'],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Notifications
+    |--------------------------------------------------------------------------
+    |
+    | Here you can define the notifications that should be sent in specific
+    | situations. You can define the types of notifications and the routes
+    | that should be used to send them.
+    |
+    */
+
+    'notifications' => [
+        'types' => [
+            'import_succeeded' => env('LEI_NOTIFY_IMPORT_SUCCEEDED', false),
+            'import_failed' => env('LEI_NOTIFY_IMPORT_FAILED', false),
+        ],
+
+        'routes' => [
+            /**
+             * Comma-separated list of email addresses to send the notifications to. Leave empty to disable.
+             */
+            'mail' => explode(',', env('LEI_NOTIFY_MAIL', '')),
+        ],
     ],
 
 ];

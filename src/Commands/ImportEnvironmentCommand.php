@@ -9,14 +9,16 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Schema;
 use Spatie\DbDumper\Databases\MySql;
 use Spatie\DbDumper\Exceptions\CannotSetParameter;
 use Symfony\Component\Process\Process;
 use VanOns\LaravelEnvironmentImporter\Exceptions\ImportEnvironmentException;
+use VanOns\LaravelEnvironmentImporter\Notifications\ImportFailed;
+use VanOns\LaravelEnvironmentImporter\Notifications\ImportSucceeded;
 use VanOns\LaravelEnvironmentImporter\Processors\DataProcessor;
 use VanOns\LaravelEnvironmentImporter\Support\AsyncProcess;
-
 use function Laravel\Prompts\select;
 
 class ImportEnvironmentCommand extends Command
@@ -48,7 +50,7 @@ class ImportEnvironmentCommand extends Command
 
     protected bool $skipFiles = false;
 
-    protected Carbon $now;
+    protected Carbon $startedAt;
 
     protected string $target;
 
@@ -77,7 +79,7 @@ class ImportEnvironmentCommand extends Command
             $this->finish();
         } catch (Exception $e) {
             $this->error($e->getMessage());
-
+            $this->sendFailureNotification($e);
             $this->afterRemoteDatabaseConnection();
 
             return static::FAILURE;
@@ -103,7 +105,7 @@ class ImportEnvironmentCommand extends Command
         $this->skipFiles = $this->option('skip-files');
 
         $this->config = config('environment-importer', []);
-        $this->now = now();
+        $this->startedAt = now();
 
         $environments = $this->getEnvironments();
         if (empty($environments)) {
@@ -139,7 +141,7 @@ class ImportEnvironmentCommand extends Command
         }
 
         // Create the cache folder.
-        $this->backupPath = base_path($this->getConfigValue('backup_path', '.import') . '/' . $this->now->format('Y-m-d_H-i-s'));
+        $this->backupPath = base_path($this->getConfigValue('backup_path', '.import') . '/' . $this->startedAt->format('Y-m-d_H-i-s'));
         $this->ensureDirectoryExists($this->backupPath);
     }
 
@@ -720,6 +722,8 @@ class ImportEnvironmentCommand extends Command
             File::deleteDirectory($this->backupPath);
         }
 
+        $this->sendSuccessNotification();
+
         if ($this->backupDestination && !$this->cleanDestination) {
             $this->line("\nThe backup is located at \"{$this->backupPath}\".");
         }
@@ -781,5 +785,31 @@ class ImportEnvironmentCommand extends Command
     protected function dbPort(): string
     {
         return $this->getEnvironmentConfigValue('db_port', '3306');
+    }
+
+    protected function sendSuccessNotification(): void
+    {
+        $enabled = (bool) config('environment-importer.notifications.types.import_succeeded', false);
+        $recipients = config('environment-importer.notifications.routes.mail', []);
+
+        if (!$enabled || empty($recipients)) {
+            return;
+        }
+
+        Notification::route('mail', $recipients)
+            ->notify(new ImportSucceeded($this->startedAt, now()));
+    }
+
+    protected function sendFailureNotification(Exception $exception): void
+    {
+        $enabled = (bool) config('environment-importer.notifications.types.import_failed', false);
+        $recipients = config('environment-importer.notifications.routes.mail', []);
+
+        if (!$enabled || empty($recipients)) {
+            return;
+        }
+
+        Notification::route('mail', $recipients)
+            ->notify(new ImportFailed($this->startedAt, now(), $exception->getMessage()));
     }
 }
