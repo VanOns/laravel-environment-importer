@@ -131,8 +131,12 @@ return [
     'data_processors' => [
         \VanOns\LaravelEnvironmentImporter\Processors\AnonymizeUsers::class,
 
-        // If you want to provide patterns for users to be preserved:
-        // \VanOns\LaravelEnvironmentImporter\Processors\AnonymizeUsers::class => ['@example.com'],
+        // This processor supports the following options:
+        //\VanOns\LaravelEnvironmentImporter\Processors\AnonymizeUsers::class => [
+        //    'preserve_emails' => ['@example.com', 'john@doe.com'],
+        //    'email_domain' => 'example.com',
+        //    'password_override' => 'password',
+        //],
     ],
 
     /*

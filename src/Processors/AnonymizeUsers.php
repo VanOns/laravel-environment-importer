@@ -22,18 +22,17 @@ class AnonymizeUsers extends DataProcessor
             $data = [];
 
             /** @phpstan-ignore-next-line */
-            $preserveUser = !empty($this->options) && Str::contains($user->email, $this->options);
+            $preserveUser = !empty($this->getPreserveEmails()) && Str::contains($user->email, $this->getPreserveEmails());
             if (!$preserveUser) {
                 $name = $this->generateUniqueValue($this->table, 'first_name', 'User');
 
                 $data['first_name'] = $name;
                 $data['last_name'] = $name;
-                $data['email'] = strtolower($name) . '@example.com';
+                $data['email'] = strtolower($name) . '@' . $this->getEmailDomain();
             }
 
-            // In local environments we want to reset the password to 'password'.
-            if (app()->isLocal()) {
-                $data['password'] = Hash::make('password');
+            if ($password = $this->getPasswordOverride()) {
+                $data['password'] = $password;
             }
 
             // Only update if any data changed.
@@ -54,6 +53,32 @@ class AnonymizeUsers extends DataProcessor
         $model = config('auth.providers.users.model');
 
         return app($model);
+    }
+
+    /**
+     * Get the emails that define the users that should be preserved.
+     */
+    protected function getPreserveEmails(): array
+    {
+        return (array) ($this->options['preserve_emails'] ?? []);
+    }
+
+    /**
+     * Get the email domain to use for anonymized users.
+     */
+    protected function getEmailDomain(): string
+    {
+        return (string) ($this->options['email_domain'] ?? '') ?: 'example.com';
+    }
+
+    /**
+     * Get the password override for users.
+     * If this setting is empty, the password will not be overridden.
+     */
+    protected function getPasswordOverride(): ?string
+    {
+        $password = $this->options['password_override'] ?? null;
+        return !empty($password) ? Hash::make($password) : null;
     }
 
     /**

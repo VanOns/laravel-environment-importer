@@ -13,7 +13,19 @@ across such a case, please let us know by [opening an issue][issues], or by addi
 * Run `php artisan migrate` to update the database.
 -->
 
-# v0.4.0
+## v0.5.0
+
+* The configuration for the `AnonymizeUsers` processor has changed. Make sure to update your config file accordingly, so
+  that it follows the following format:
+  ```php
+  \VanOns\LaravelEnvironmentImporter\Processors\AnonymizeUsers::class => [
+      'preserve_emails' => ['@example.com', 'john@doe.com'],
+      'email_domain' => 'example.com',
+      'password_override' => 'password',
+  ]
+  ```
+
+## v0.4.0
 
 * The `sensitive_tables` config key was renamed to `empty_tables`. A fallback has been put in place that will use the
 old key, in case the new key is empty, but it is recommended to update your config.
