@@ -19,7 +19,7 @@ across such a case, please let us know by [opening an issue][issues], or by addi
   that it follows the following format:
   ```php
   \VanOns\LaravelEnvironmentImporter\Processors\AnonymizeUsers::class => [
-      'preserve_emails' => ['@example.com'],
+      'preserve_emails' => ['@example.com', 'john@doe.com'],
       'email_domain' => 'example.com',
       'password_override' => 'password',
   ]

@@ -133,7 +133,7 @@ return [
 
         // This processor supports the following options:
         //\VanOns\LaravelEnvironmentImporter\Processors\AnonymizeUsers::class => [
-        //    'preserve_emails' => ['@example.com'],
+        //    'preserve_emails' => ['@example.com', 'john@doe.com'],
         //    'email_domain' => 'example.com',
         //    'password_override' => 'password',
         //],
