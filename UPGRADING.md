@@ -13,10 +13,11 @@ across such a case, please let us know by [opening an issue][issues], or by addi
 * Run `php artisan migrate` to update the database.
 -->
 
-## v0.5.0
+## v0.6.0
 
 * The configuration for the `AnonymizeUsers` processor has changed. Make sure to update your config file accordingly, so
   that it follows the following format:
+  
   ```php
   \VanOns\LaravelEnvironmentImporter\Processors\AnonymizeUsers::class => [
       'preserve_emails' => ['@example.com', 'john@doe.com'],
