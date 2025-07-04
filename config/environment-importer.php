@@ -51,14 +51,31 @@ return [
     |--------------------------------------------------------------------------
     |
     | Here you can define the path to where the binary lives, which will be used to
-    | dump the database. On macOS, you can install this using Homebrew:
-    | https://formulae.brew.sh/formula/mysql-client
+    | dump the database.
+    |
+    | Example binaries: mysqldump, mongodump, mariadb-dump, pg_dump, etc.
     |
     | NOTE: Don't include the binary itself in the path.
     |
     */
 
     'db_dump_binary_path' => env('LEI_DB_DUMP_BINARY_PATH', '/usr/bin'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Database Import Binary Path
+    |--------------------------------------------------------------------------
+    |
+    | Here you can define the path to where the binary lives, which will
+    | be used to import the database.
+    |
+    | Example binaries: mysql, mongoimport, mariadb, psql, etc.
+    |
+    | NOTE: Don't include the binary itself in the path.
+    |
+    */
+
+    'db_import_binary_path' => env('LEI_DB_IMPORT_BINARY_PATH', '/usr/bin'),
 
     /*
     |--------------------------------------------------------------------------

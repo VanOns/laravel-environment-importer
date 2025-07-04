@@ -245,6 +245,10 @@ class ImportEnvironmentCommand extends Command
             $this->line('[DB] Processing persist tables...');
 
             foreach ($persistTables as $table) {
+                if (!Schema::hasTable($table)) {
+                    continue;
+                }
+
                 $tableDumpFile = "{$dumpPath}/local_{$table}.sql";
                 $files[] = $tableDumpFile;
 
@@ -426,32 +430,84 @@ class ImportEnvironmentCommand extends Command
 
     /**
      * Import the database dump.
+     *
+     * @throws ImportEnvironmentException
      */
     protected function importDatabaseDump(string $dumpFile): void
     {
         $this->line('[DB] Importing database dump...');
 
-        $handle = fopen($dumpFile, 'rb');
-
-        /**
-         * The following code will read the dump file line by line and execute each statement, which is useful for large
-         * database dumps. The end of each statement is determined by a semicolon. We do it this way because it's a lot
-         * less resource-intensive than loading the entire dump file into memory and executing it as a single query.
-         */
-        $query = '';
-        while (($line = fgets($handle)) !== false) {
-            $query .= $line;
-
-            // Check if the line ends with a semicolon, meaning it's a complete statement.
-            if (str_ends_with(trim($line), ';')) {
-                DB::unprepared($query); // Execute the query.
-                $query = ''; // Reset for next query.
-            }
-        }
-
-        fclose($handle);
+        match ($connection = DB::getDefaultConnection()) {
+            'mysql' => $this->importMysqlDump($dumpFile),
+            'sqlite' => $this->importSqliteDump($dumpFile),
+            'pgsql' => $this->importPgsqlDump($dumpFile),
+            default => throw new ImportEnvironmentException('Unsupported database connection type: ' . $connection),
+        };
 
         $this->info("[DB] Imported database dump from \"{$dumpFile}\".");
+    }
+
+    /**
+     * Import the database dump using the MySQL client.
+     *
+     * @throws ImportEnvironmentException
+     */
+    protected function importMysqlDump(string $dumpFile): void
+    {
+        $binary = rtrim($this->getConfigValue('db_import_binary_path', '/usr/bin'), '/') . '/mysql';
+        $command = sprintf(
+            '%s --host=%s --port=%s --user=%s %s < %s',
+            escapeshellcmd($binary),
+            DB::getConfig('host'),
+            DB::getConfig('port'),
+            DB::getConfig('username'),
+            DB::getConfig('database'),
+            escapeshellarg($dumpFile)
+        );
+
+        $process = Process::fromShellCommandline($command, env: [
+            'MYSQL_PWD' => DB::getConfig('password'),
+        ]);
+
+        $process->run();
+
+        if (!$process->isSuccessful()) {
+            throw new ImportEnvironmentException('Failed to import MySQL database dump: ' . $process->getErrorOutput());
+        }
+    }
+
+    /**
+     * @throws ImportEnvironmentException
+     */
+    protected function importSqliteDump(string $dumpFile): void
+    {
+        $destination = DB::getConfig('database');
+
+        if (!File::copy($dumpFile, $destination)) {
+            throw new ImportEnvironmentException("Failed to import SQLite database dump from \"{$dumpFile}\" to \"{$destination}\"");
+        }
+    }
+
+    /**
+     * @throws ImportEnvironmentException
+     */
+    protected function importPgsqlDump(string $dumpFile): void
+    {
+        $binary = rtrim($this->getConfigValue('db_import_binary_path', '/usr/bin'), '/') . '/psql';
+        $process = new Process([
+            $binary,
+            '--host=' . DB::getConfig('host'),
+            '--port=' . DB::getConfig('port'),
+            '--username=' . DB::getConfig('username'),
+            '--dbname=' . DB::getConfig('database'),
+            '-f', $dumpFile,
+        ], null, ['PGPASSWORD' => DB::getConfig('password')]);
+
+        $process->run();
+
+        if (!$process->isSuccessful()) {
+            throw new ImportEnvironmentException('Failed to import PostgreSQL database dump: ' . $process->getErrorOutput());
+        }
     }
 
     /**
