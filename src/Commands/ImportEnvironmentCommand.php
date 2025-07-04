@@ -245,6 +245,10 @@ class ImportEnvironmentCommand extends Command
             $this->line('[DB] Processing persist tables...');
 
             foreach ($persistTables as $table) {
+                if (!Schema::hasTable($table)) {
+                    continue;
+                }
+
                 $tableDumpFile = "{$dumpPath}/local_{$table}.sql";
                 $files[] = $tableDumpFile;
 
