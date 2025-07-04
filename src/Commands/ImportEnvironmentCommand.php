@@ -448,7 +448,7 @@ class ImportEnvironmentCommand extends Command
     }
 
     /**
-     * Import the database dump using the MySQL client.
+     * Import the MySQL database dump using the mysql client.
      *
      * @throws ImportEnvironmentException
      */
@@ -477,6 +477,8 @@ class ImportEnvironmentCommand extends Command
     }
 
     /**
+     * Import the SQLite database dump by copying it.
+     *
      * @throws ImportEnvironmentException
      */
     protected function importSqliteDump(string $dumpFile): void
@@ -489,6 +491,8 @@ class ImportEnvironmentCommand extends Command
     }
 
     /**
+     * Import the PostgreSQL database dump using the psql client.
+     *
      * @throws ImportEnvironmentException
      */
     protected function importPgsqlDump(string $dumpFile): void
