@@ -145,7 +145,9 @@ return [
     |
     */
 
-    'database_processors' => [],
+    'database_processors' => [
+        \VanOns\LaravelEnvironmentImporter\Processors\Database\FixCommonMySQLErrors::class,
+    ],
 
     /*
     |--------------------------------------------------------------------------
