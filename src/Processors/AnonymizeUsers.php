@@ -17,8 +17,12 @@ class AnonymizeUsers extends DataProcessor
 
     public function process(): void
     {
+        if (empty($userModel = $this->getUserModel())) {
+            return;
+        }
+
         /** @var Authenticatable|Model $user */
-        foreach ($this->getUserModel()->query()->cursor() as $user) {
+        foreach ($userModel::query()->cursor() as $user) {
             $data = [];
 
             /** @phpstan-ignore-next-line */
@@ -48,11 +52,9 @@ class AnonymizeUsers extends DataProcessor
     /**
      * Get the user model.
      */
-    protected function getUserModel(): Authenticatable|Model
+    protected function getUserModel(): ?string
     {
-        $model = config('auth.providers.users.model');
-
-        return app($model);
+        return config('auth.providers.users.model');
     }
 
     /**
