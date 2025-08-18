@@ -17,7 +17,8 @@ use Symfony\Component\Process\Process;
 use VanOns\LaravelEnvironmentImporter\Exceptions\ImportEnvironmentException;
 use VanOns\LaravelEnvironmentImporter\Notifications\ImportFailed;
 use VanOns\LaravelEnvironmentImporter\Notifications\ImportSucceeded;
-use VanOns\LaravelEnvironmentImporter\Processors\DataProcessor;
+use VanOns\LaravelEnvironmentImporter\Processors\Data\DataProcessor;
+use VanOns\LaravelEnvironmentImporter\Processors\Database\DatabaseProcessor;
 use VanOns\LaravelEnvironmentImporter\Support\AsyncProcess;
 use function Laravel\Prompts\select;
 
@@ -295,6 +296,7 @@ class ImportEnvironmentCommand extends Command
 
         $this->afterRemoteDatabaseConnection();
         $this->buildDumpFile($dumpFile, $baseDumpFile, $files);
+        $this->processDatabaseDump($dumpFile);
 
         $this->line('[DB] Deleting intermediate dump files...');
 
@@ -416,6 +418,44 @@ class ImportEnvironmentCommand extends Command
         }
 
         fclose($finalDumpHandle);
+    }
+
+    /**
+     * Process the database dump.
+     *
+     * @throws ImportEnvironmentException
+     */
+    protected function processDatabaseDump(string $dumpFile): void
+    {
+        $processors = $this->getConfigValue('database_processors', []);
+
+        if (empty($processors)) {
+            $this->line('[DB] No database processors found, skipping database dump processing.');
+            return;
+        }
+
+        $this->line('[DB] Processing database dump...');
+
+        foreach ($processors as $key => $value) {
+            if (is_int($key)) {
+                $processorClass = $value;
+                $options = [];
+            } else {
+                $processorClass = $key;
+                $options = $value;
+            }
+
+            if (!is_a($processorClass, DatabaseProcessor::class, true)) {
+                throw new ImportEnvironmentException('The processor "' . $processorClass . '" must extend "' . DatabaseProcessor::class . '"');
+            }
+
+            $processor = new $processorClass($dumpFile, $options);
+
+            $this->line("[DB] Processing database dump using \"{$processorClass}\"...");
+            $processor->process();
+        }
+
+        $this->info('[DB] Processed database dump.');
     }
 
     /**
@@ -544,7 +584,7 @@ class ImportEnvironmentCommand extends Command
             }
 
             if (!is_a($processorClass, DataProcessor::class, true)) {
-                throw new ImportEnvironmentException("The processor \"{$processorClass}\" must extend \"VanOns\LaravelEnvironmentImporter\Processors\DataProcessor\"");
+                throw new ImportEnvironmentException('The processor "' . $processorClass . '" must extend "' . DataProcessor::class . '"');
             }
 
             foreach ($tables as $table) {

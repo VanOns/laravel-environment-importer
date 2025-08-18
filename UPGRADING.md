@@ -17,9 +17,9 @@ across such a case, please let us know by [opening an issue][issues], or by addi
 
 * The configuration for the `AnonymizeUsers` processor has changed. Make sure to update your config file accordingly, so
   that it follows the following format:
-  
+
   ```php
-  \VanOns\LaravelEnvironmentImporter\Processors\AnonymizeUsers::class => [
+  \VanOns\LaravelEnvironmentImporter\Processors\Data\AnonymizeUsers::class => [
       'preserve_emails' => ['@example.com', 'john@doe.com'],
       'email_domain' => 'example.com',
       'password_override' => 'password',

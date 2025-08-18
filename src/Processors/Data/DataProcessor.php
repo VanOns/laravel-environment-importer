@@ -1,6 +1,6 @@
 <?php
 
-namespace VanOns\LaravelEnvironmentImporter\Processors;
+namespace VanOns\LaravelEnvironmentImporter\Processors\Data;
 
 abstract class DataProcessor
 {
