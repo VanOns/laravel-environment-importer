@@ -137,6 +137,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Database Processors
+    |--------------------------------------------------------------------------
+    |
+    | Here you can define any processors that should be run on the database after
+    | building the dump file.
+    |
+    */
+
+    'database_processors' => [],
+
+    /*
+    |--------------------------------------------------------------------------
     | Data Processors
     |--------------------------------------------------------------------------
     |
@@ -146,10 +158,10 @@ return [
     */
 
     'data_processors' => [
-        \VanOns\LaravelEnvironmentImporter\Processors\AnonymizeUsers::class,
+        \VanOns\LaravelEnvironmentImporter\Processors\Data\AnonymizeUsers::class,
 
         // This processor supports the following options:
-        //\VanOns\LaravelEnvironmentImporter\Processors\AnonymizeUsers::class => [
+        //\VanOns\LaravelEnvironmentImporter\Processors\Data\AnonymizeUsers::class => [
         //    'preserve_emails' => ['@example.com', 'john@doe.com'],
         //    'email_domain' => 'example.com',
         //    'password_override' => 'password',
