@@ -8,11 +8,6 @@
         "environment",
         "import"
     ],
-    "autoload": {
-        "psr-4": {
-            "VanOns\\LaravelEnvironmentImporter\\": "src/"
-        }
-    },
     "authors": [
         {
             "name": "Danique Wijnalda",
@@ -36,6 +31,11 @@
     "scripts": {
         "analyse": "vendor/bin/phpstan analyse",
         "format": "vendor/bin/php-cs-fixer fix"
+    },
+    "autoload": {
+        "psr-4": {
+            "VanOns\\LaravelEnvironmentImporter\\": "src/"
+        }
     },
     "extra": {
         "laravel": {
