@@ -2,9 +2,9 @@
 
 # Laravel Environment Importer
 
-[![Latest Version on Github](https://img.shields.io/github/release/VanOns/laravel-environment-importer.svg?style=flat-square)](https://github.com/VanOns/laravel-environment-importer/releases)
-[![Total Downloads](https://img.shields.io/packagist/dt/van-ons/laravel-environment-importer.svg?style=flat-square)](https://packagist.org/packages/van-ons/laravel-environment-importer)
-[![Github issues](https://img.shields.io/github/issues/VanOns/laravel-environment-importer?style=flat-square)](https://github.com/VanOns/laravel-environment-importer/issues)
+[![Latest version on GitHub](https://img.shields.io/github/release/VanOns/laravel-environment-importer.svg?style=flat-square)](https://github.com/VanOns/laravel-environment-importer/releases)
+[![Total downloads](https://img.shields.io/packagist/dt/van-ons/laravel-environment-importer.svg?style=flat-square)](https://packagist.org/packages/van-ons/laravel-environment-importer)
+[![GitHub issues](https://img.shields.io/github/issues/VanOns/laravel-environment-importer?style=flat-square)](https://github.com/VanOns/laravel-environment-importer/issues)
 [![License](https://img.shields.io/github/license/VanOns/laravel-environment-importer?style=flat-square)](https://github.com/VanOns/laravel-environment-importer/blob/main/LICENSE.md)
 
 A Laravel package for easy importing of a configured environment.
