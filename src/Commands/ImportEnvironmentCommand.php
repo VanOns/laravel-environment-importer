@@ -325,7 +325,9 @@ class ImportEnvironmentCommand extends Command
             ->setUserName($local ? DB::getConfig('username') : $this->getEnvironmentConfigValue('db_username'))
             ->setPassword($local ? DB::getConfig('password') : $this->getEnvironmentConfigValue('db_password'))
             ->setPort($port)
-            ->setDumpBinaryPath($this->getConfigValue('db_dump_binary_path', '/usr/bin'));
+            ->setDumpBinaryPath($this->getConfigValue('db_dump_binary_path', '/usr/bin'))
+            // Disable column statistics to prevent issues with older MySQL or MariaDB versions.
+            ->addExtraOption('--column-statistics=0');
     }
 
     /**
