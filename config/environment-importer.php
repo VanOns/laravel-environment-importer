@@ -79,6 +79,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Database Timeout
+    |--------------------------------------------------------------------------
+    |
+    | Here you can define the timeout (in seconds) for database operations.
+    | This includes dumping and importing the database.
+    |
+    | Set to `null` to disable the timeout.
+    |
+    */
+
+    'db_timeout' => env('LEI_DB_TIMEOUT'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Backup Path
     |--------------------------------------------------------------------------
     |
