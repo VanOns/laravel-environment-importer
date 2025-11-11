@@ -89,7 +89,7 @@ return [
     |
     */
 
-    'db_timeout' => env('LEI_DB_TIMEOUT'),
+    'db_timeout' => env('LEI_DB_TIMEOUT', 60),
 
     /*
     |--------------------------------------------------------------------------

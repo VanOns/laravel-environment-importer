@@ -13,18 +13,8 @@ across such a case, please let us know by [opening an issue][issues], or by addi
   + \VanOns\LaravelEnvironmentImporter\Processors\Data\AnonymizeUsers::class
   ```
 
-* The `db_timeout` configuration option was added. Before, the default shell timeout was used (60 seconds). If you want
-  to keep the old behavior, you need to explicitly set it in your `.env` file:
-
-  ```php
-  LEI_DB_TIMEOUT=60
-  ```
-  
-  or, directly in the config file:
-
-  ```php
-  'db_timeout' => 60,
-  ```
+* The `db_timeout` configuration option was added (default: `60`, same as the default shell command timeout).
+  Set the option to `null` to disable the timeout.
 
 ## v0.6.0
 
