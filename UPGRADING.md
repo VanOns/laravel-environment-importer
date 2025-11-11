@@ -4,22 +4,22 @@ We aim to make upgrading between versions as smooth as possible, but sometimes i
 This document will outline those steps. And as much as we try to cover all cases, we might miss some. If you come
 across such a case, please let us know by [opening an issue][issues], or by adding it yourself and creating a pull request.
 
-<!-- EXAMPLE -->
-<!--
-# v1 to v2
+## v0.8.0
 
-* Remove the `foo` column from the `bar` table.
-* Add the `baz` column to the `bar` table.
-* Run `php artisan migrate` to update the database.
--->
+* The namespace for the `AnonymizeUsers` processor has changed. Make sure to update your config file accordingly:
+
+  ```diff
+  - \VanOns\LaravelEnvironmentImporter\Processors\AnonymizeUsers::class
+  + \VanOns\LaravelEnvironmentImporter\Processors\Data\AnonymizeUsers::class
+  ```
 
 ## v0.6.0
 
 * The configuration for the `AnonymizeUsers` processor has changed. Make sure to update your config file accordingly, so
   that it follows the following format:
-  
+
   ```php
-  \VanOns\LaravelEnvironmentImporter\Processors\AnonymizeUsers::class => [
+  \VanOns\LaravelEnvironmentImporter\Processors\Data\AnonymizeUsers::class => [
       'preserve_emails' => ['@example.com', 'john@doe.com'],
       'email_domain' => 'example.com',
       'password_override' => 'password',
