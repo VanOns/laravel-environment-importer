@@ -6,16 +6,29 @@ across such a case, please let us know by [opening an issue][issues], or by addi
 
 ## v0.8.0
 
-* The namespace for the `AnonymizeUsers` processor has changed. Make sure to update your config file accordingly:
+* The namespace for the `AnonymizeUsers` processor was changed. Make sure to update your config file accordingly:
 
   ```diff
   - \VanOns\LaravelEnvironmentImporter\Processors\AnonymizeUsers::class
   + \VanOns\LaravelEnvironmentImporter\Processors\Data\AnonymizeUsers::class
   ```
 
+* The `db_timeout` configuration option was added. Before, the default shell timeout was used (60 seconds). If you want
+  to keep the old behavior, you need to explicitly set it in your `.env` file:
+
+  ```php
+  LEI_DB_TIMEOUT=60
+  ```
+  
+  or, directly in the config file:
+
+  ```php
+  'db_timeout' => 60,
+  ```
+
 ## v0.6.0
 
-* The configuration for the `AnonymizeUsers` processor has changed. Make sure to update your config file accordingly, so
+* The configuration for the `AnonymizeUsers` processor was changed. Make sure to update your config file accordingly, so
   that it follows the following format:
 
   ```php
