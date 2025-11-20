@@ -17,7 +17,8 @@ class ImportFailed extends Notification implements ShouldQueue
         protected Carbon $startedAt,
         protected Carbon $failedAt,
         protected string $exception
-    ) {}
+    ) {
+    }
 
     public function via($notifiable)
     {
@@ -26,7 +27,7 @@ class ImportFailed extends Notification implements ShouldQueue
 
     public function toMail($notifiable)
     {
-        return (new MailMessage)
+        return (new MailMessage())
             ->subject('Environment not imported')
             ->line('The environment import was not successful. Please find the details below.')
             ->line(new HtmlString('<strong>Started at:</strong> ' . $this->startedAt->toString()))

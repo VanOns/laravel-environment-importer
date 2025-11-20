@@ -16,7 +16,8 @@ class ImportSucceeded extends Notification implements ShouldQueue
     public function __construct(
         protected Carbon $startedAt,
         protected Carbon $finishedAt,
-    ) {}
+    ) {
+    }
 
     public function via($notifiable)
     {
@@ -25,7 +26,7 @@ class ImportSucceeded extends Notification implements ShouldQueue
 
     public function toMail($notifiable)
     {
-        return (new MailMessage)
+        return (new MailMessage())
             ->subject('Environment imported successfully')
             ->line('The environment import was successful! Please find the details below.')
             ->line(new HtmlString('<strong>Started at:</strong> ' . $this->startedAt->toString()))
