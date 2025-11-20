@@ -509,7 +509,7 @@ class ImportEnvironmentCommand extends Command
 
         $process = Process::fromShellCommandline($command, env: [
             'MYSQL_PWD' => DB::getConfig('password'),
-        ]);
+        ], timeout: $this->getConfigValue('db_timeout'));
 
         $process->run();
 
@@ -701,7 +701,7 @@ class ImportEnvironmentCommand extends Command
         );
 
         $progressBar = $this->getOutput()->createProgressBar();
-        $process = Process::fromShellCommandline($command)->setTimeout(null);
+        $process = Process::fromShellCommandline($command, timeout: $this->getConfigValue('db_timeout'));
         $total = 0;
         $current = 0;
         $rsyncStart = now();
