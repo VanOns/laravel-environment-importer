@@ -21,4 +21,6 @@ While the configuration file contains explanations for all options, some options
 ### `db_use_ssh`
 
 If you want to use an SSH tunnel to connect to your database, set this option to `true`. This will start an SSH tunnel
-using the `db_ssh_*` options. By default, the tunnel uses port `3307`, but you can change this using the `db_ssh_tunnel_port` option.
+using the `db_ssh_*` options. By default, the tunnel uses port `3307`, but you can change this using the `db_ssh_tunnel_port`
+option. If your SSH key needs an approval step (for example via 1Password), the command waits for the tunnel to become
+available for up to `db_ssh_tunnel_timeout` seconds before failing.

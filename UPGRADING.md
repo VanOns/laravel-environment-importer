@@ -16,6 +16,9 @@ across such a case, please let us know by [opening an issue][issues], or by addi
 * The `db_timeout` configuration option was added (default: `60`, same as the default shell command timeout).
   Set the option to `null` to disable the timeout.
 
+* The `db_ssh_tunnel_timeout` configuration was added (default: `30` seconds). This sets the timeout for establishing
+  an SSH tunnel to the remote database server. Set the option to `null` to disable the timeout.
+
 ## v0.6.0
 
 * The configuration for the `AnonymizeUsers` processor was changed. Make sure to update your config file accordingly, so
