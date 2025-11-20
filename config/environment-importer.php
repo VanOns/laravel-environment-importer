@@ -7,7 +7,7 @@ return [
     | Environments
     |--------------------------------------------------------------------------
     |
-    | Here you can define any environment you want to be able to import from.
+    | Environments that should be available for import.
     |
     */
 
@@ -50,8 +50,7 @@ return [
     | Database Dump Binary Path
     |--------------------------------------------------------------------------
     |
-    | Here you can define the path to where the binary lives, which will be used to
-    | dump the database.
+    | Path to where the binary lives, which will be used to dump the database.
     |
     | Example binaries: mysqldump, mongodump, mariadb-dump, pg_dump, etc.
     |
@@ -66,8 +65,7 @@ return [
     | Database Import Binary Path
     |--------------------------------------------------------------------------
     |
-    | Here you can define the path to where the binary lives, which will
-    | be used to import the database.
+    | Path to where the binary lives, which will be used to import the database.
     |
     | Example binaries: mysql, mongoimport, mariadb, psql, etc.
     |
@@ -82,8 +80,8 @@ return [
     | Database Timeout
     |--------------------------------------------------------------------------
     |
-    | Here you can define the timeout (in seconds) for database operations.
-    | This includes dumping and importing the database.
+    | Timeout (in seconds) for database operations. This includes dumping and
+    | importing the database.
     |
     | Set to `null` to disable the timeout.
     |
@@ -96,8 +94,8 @@ return [
     | Backup Path
     |--------------------------------------------------------------------------
     |
-    | Here you can define the path to where the backups will be stored. The path
-    | is relative to the root of the project.
+    | Path to where the backups will be stored. The path is relative to the
+    | root of the project.
     |
     */
 
@@ -108,10 +106,10 @@ return [
     | Import Paths
     |--------------------------------------------------------------------------
     |
-    | Here you can define the paths that should be imported. Each path is
-    | relative to the root of the project. For each import path you can define
-    | an array of excludes, which are paths that should be skipped. If you do
-    | not want to exclude anything, you can just define the path as a string.
+    | Paths that should be imported. Each path is relative to the root of
+    | the project. For each import path you can define an array of excludes,
+    | which are paths that should be skipped. If you do not want to exclude
+    | anything, you can just define the path as a string.
     |
     */
 
@@ -126,8 +124,7 @@ return [
     | Empty Tables
     |--------------------------------------------------------------------------
     |
-    | Here you can define any tables that should have their data cleared when
-    | dumping the database.
+    | Tables that should have their data cleared when dumping the database.
     | This could for example be used for tables containing sensitive data.
     |
     */
@@ -139,8 +136,7 @@ return [
     | Persist Tables
     |--------------------------------------------------------------------------
     |
-    | Here you can define any tables that should have their data persist when
-    | dumping the database.
+    | Tables that should have their data persist when dumping the database.
     | This could for example be used for tables containing configuration for
     | a specific environment, that should not be imported to a different
     | environment.
@@ -154,8 +150,7 @@ return [
     | Database Processors
     |--------------------------------------------------------------------------
     |
-    | Here you can define any processors that should be run on the database after
-    | building the dump file.
+    | Processors that should be run on the database after building the dump file.
     |
     */
 
@@ -168,8 +163,8 @@ return [
     | Data Processors
     |--------------------------------------------------------------------------
     |
-    | Here you can define any processors that should be run on the data when
-    | importing it into the local environment.
+    | Processors that should be run on the data when importing it into the
+    | local environment.
     |
     */
 
@@ -189,9 +184,8 @@ return [
     | Notifications
     |--------------------------------------------------------------------------
     |
-    | Here you can define the notifications that should be sent in specific
-    | situations. You can define the types of notifications and the routes
-    | that should be used to send them.
+    | Notifications that should be sent in specific situations. You can define
+    | the types of notifications and the routes that should be used to send them.
     |
     */
 
