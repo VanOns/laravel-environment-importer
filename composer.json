@@ -29,7 +29,7 @@
         "phpstan/phpstan": "^1.12|^2.0"
     },
     "scripts": {
-        "analyse": "vendor/bin/phpstan analyse",
+        "analyse": "vendor/bin/phpstan analyse --memory-limit=-1",
         "format": "vendor/bin/php-cs-fixer fix"
     },
     "autoload": {
