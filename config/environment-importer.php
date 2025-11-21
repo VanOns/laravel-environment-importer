@@ -91,6 +91,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | SSH Tunnel Timeout
+    |--------------------------------------------------------------------------
+    |
+    | Maximum number of seconds to wait for the SSH tunnel (and any external
+    | credential prompts such as 1Password) to become available.
+    |
+    | Set to `null` to disable the timeout.
+    |
+    */
+
+    'db_ssh_tunnel_timeout' => env('LEI_DB_SSH_TUNNEL_TIMEOUT', 30),
+
+    /*
+    |--------------------------------------------------------------------------
     | Backup Path
     |--------------------------------------------------------------------------
     |

@@ -20,6 +20,7 @@ use VanOns\LaravelEnvironmentImporter\Notifications\ImportSucceeded;
 use VanOns\LaravelEnvironmentImporter\Processors\Data\DataProcessor;
 use VanOns\LaravelEnvironmentImporter\Processors\Database\DatabaseProcessor;
 use VanOns\LaravelEnvironmentImporter\Support\AsyncProcess;
+
 use function Laravel\Prompts\select;
 
 class ImportEnvironmentCommand extends Command
@@ -372,8 +373,54 @@ class ImportEnvironmentCommand extends Command
                 sleep(2);
             } while (!$this->dbTunnelProcess->isRunning());
 
+            $this->waitForSshTunnelAvailability();
+
             $this->info('[DB] SSH tunnel started.');
         }
+    }
+
+    /**
+     * Wait until the SSH tunnel is ready for database connections.
+     *
+     * @throws ImportEnvironmentException
+     */
+    protected function waitForSshTunnelAvailability(): void
+    {
+        $timeout = $this->getConfigValue('db_ssh_tunnel_timeout', 30);
+
+        $deadline = microtime(true) + ($timeout ?? 0);
+
+        $this->line('[DB] Waiting for SSH tunnel to become available...');
+
+        while (is_null($timeout) || microtime(true) < $deadline) {
+            if (!$this->dbTunnelProcess?->isRunning()) {
+                throw new ImportEnvironmentException('SSH tunnel stopped while waiting for availability.');
+            }
+
+            if ($this->isDbTunnelReady()) {
+                return;
+            }
+
+            usleep(250000);
+        }
+
+        throw new ImportEnvironmentException("SSH tunnel did not become available within {$timeout} seconds. Please ensure SSH key access is granted.");
+    }
+
+    /**
+     * Determine whether the SSH tunnel port currently accepts connections.
+     */
+    protected function isDbTunnelReady(): bool
+    {
+        $connection = @fsockopen('127.0.0.1', (int) $this->dbSshTunnelPort(), $errno, $errstr, 0.2);
+
+        if ($connection) {
+            fclose($connection);
+
+            return true;
+        }
+
+        return false;
     }
 
     /**
