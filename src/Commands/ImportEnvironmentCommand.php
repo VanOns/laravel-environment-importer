@@ -11,7 +11,11 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Schema;
+use Spatie\DbDumper\Databases\MariaDb;
+use Spatie\DbDumper\Databases\MongoDb;
 use Spatie\DbDumper\Databases\MySql;
+use Spatie\DbDumper\Databases\PostgreSql;
+use Spatie\DbDumper\Databases\Sqlite;
 use Spatie\DbDumper\Exceptions\CannotSetParameter;
 use Symfony\Component\Process\Process;
 use VanOns\LaravelEnvironmentImporter\Exceptions\ImportEnvironmentException;
@@ -157,6 +161,7 @@ class ImportEnvironmentCommand extends Command
             'ssh_host',
             'ssh_username',
             'ssh_base_path',
+            'db_type',
             'db_host',
             'db_name',
             'db_username',
@@ -321,16 +326,28 @@ class ImportEnvironmentCommand extends Command
             default => $this->dbPort(),
         };
 
+        $dbType = match ($local) {
+            true => DB::getDriverName(),
+            false => $this->getEnvironmentConfigValue('db_type', 'mysql'),
+        };
+
+        /** @var class-string<MariaDb|MongoDb|MySql|PostgreSql|Sqlite> $db */
+        $db = match ($dbType) {
+            'mariadb' => MariaDb::class,
+            'mongodb' => MongoDb::class,
+            'pgsql' => PostgreSql::class,
+            'sqlite' => Sqlite::class,
+            default => MySql::class,
+        };
+
         /** @phpstan-ignore-next-line */
-        return MySql::create()
+        return $db::create()
             ->setHost($local ? DB::getConfig('host') : $this->getEnvironmentConfigValue('db_host'))
             ->setDbName($local ? DB::getConfig('database') : $this->getEnvironmentConfigValue('db_name'))
             ->setUserName($local ? DB::getConfig('username') : $this->getEnvironmentConfigValue('db_username'))
             ->setPassword($local ? DB::getConfig('password') : $this->getEnvironmentConfigValue('db_password'))
             ->setPort($port)
-            ->setDumpBinaryPath($this->getConfigValue('db_dump_binary_path', '/usr/bin'))
-            // Disable column statistics to prevent issues with older MySQL or MariaDB versions.
-            ->addExtraOption('--column-statistics=0');
+            ->setDumpBinaryPath($this->getConfigValue('db_dump_binary_path', '/usr/bin'));
     }
 
     /**
