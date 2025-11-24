@@ -24,7 +24,7 @@ return [
     | - db_port: The database port.
     | - db_use_ssh: Whether to use an SSH tunnel to connect to the database.
     | - db_ssh_tunnel_port: The local port to use for the SSH tunnel.
-    | - db_skip_ssl: Whether to skip SSL when connecting to the database. Only supported by MySQL/MariaDB.
+    | - db_skip_ssl: Whether to skip SSL when connecting to the database. Only supported by MySQL.
     |
     */
 

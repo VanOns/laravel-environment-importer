@@ -7,7 +7,7 @@ across such a case, please let us know by [opening an issue][issues], or by addi
 ## v0.8.1
 
 * The `db_skip_ssl` configuration option was added to `environments.*`. This allows for skipping SSL when connecting to
-  the remote database. This flag is only supported by MySQL and MariaDB.
+  the remote database. This flag is only supported by MySQL.
 
 ## v0.8.0
 
