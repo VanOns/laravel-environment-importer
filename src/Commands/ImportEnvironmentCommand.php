@@ -341,13 +341,20 @@ class ImportEnvironmentCommand extends Command
         };
 
         /** @phpstan-ignore-next-line */
-        return $db::create()
+        $client = $db::create()
             ->setHost($local ? DB::getConfig('host') : $this->getEnvironmentConfigValue('db_host'))
             ->setDbName($local ? DB::getConfig('database') : $this->getEnvironmentConfigValue('db_name'))
             ->setUserName($local ? DB::getConfig('username') : $this->getEnvironmentConfigValue('db_username'))
             ->setPassword($local ? DB::getConfig('password') : $this->getEnvironmentConfigValue('db_password'))
             ->setPort($port)
             ->setDumpBinaryPath($this->getConfigValue('db_dump_binary_path', '/usr/bin'));
+
+        // Allow skipping SSL for MySQL/MariaDB connections if configured.
+        if (!$local && $dbType === 'mysql' && $this->getConfigValue('db_skip_ssl', false)) {
+            $client->setSkipSsl();
+        }
+
+        return $client;
     }
 
     /**

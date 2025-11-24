@@ -4,6 +4,11 @@ We aim to make upgrading between versions as smooth as possible, but sometimes i
 This document will outline those steps. And as much as we try to cover all cases, we might miss some. If you come
 across such a case, please let us know by [opening an issue][issues], or by adding it yourself and creating a pull request.
 
+## v0.8.1
+
+* The `db_skip_ssl` configuration option was added to `environments.*`. This allows for skipping SSL when connecting to
+  the remote database. This flag is only supported by MySQL and MariaDB.
+
 ## v0.8.0
 
 * The namespace for the `AnonymizeUsers` processor was changed. Make sure to update your config file accordingly:
