@@ -24,6 +24,7 @@ return [
     | - db_port: The database port.
     | - db_use_ssh: Whether to use an SSH tunnel to connect to the database.
     | - db_ssh_tunnel_port: The local port to use for the SSH tunnel.
+    | - db_skip_ssl: Whether to skip SSL when connecting to the database. Only supported by MySQL/MariaDB.
     |
     */
 
@@ -43,6 +44,7 @@ return [
             'db_port' => env('LEI_STAGING_DB_PORT', '3306'),
             'db_use_ssh' => (bool) env('LEI_STAGING_DB_USE_SSH', false),
             'db_ssh_tunnel_port' => env('LEI_STAGING_DB_SSH_TUNNEL_PORT', '3307'),
+            'db_skip_ssl' => (bool) env('LEI_STAGING_DB_SKIP_SSL', false),
         ],
 
         'production' => [
@@ -60,6 +62,7 @@ return [
             'db_port' => env('LEI_PRODUCTION_DB_PORT', '3306'),
             'db_use_ssh' => (bool) env('LEI_PRODUCTION_DB_USE_SSH', false),
             'db_ssh_tunnel_port' => env('LEI_PRODUCTION_DB_SSH_TUNNEL_PORT', '3307'),
+            'db_skip_ssl' => (bool) env('LEI_PRODUCTION_DB_SKIP_SSL', false),
         ],
     ],
 
