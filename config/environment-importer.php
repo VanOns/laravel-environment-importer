@@ -9,6 +9,22 @@ return [
     |
     | Environments that should be available for import.
     |
+    | Each environment supports the following settings:
+    | - ssh_host: The SSH host to connect to.
+    | - ssh_username: The SSH username to use.
+    | - ssh_key: The SSH private key to use (optional if ssh_password is used).
+    | - ssh_password: The SSH password to use (overrules ssh_key if present).
+    | - ssh_base_path: The base path of the project on the remote server.
+    |
+    | - db_type: The database connection type. Supported types: `mysql` (default), `mariadb`, `mongodb`, `pgsql` and `sqlite`.
+    | - db_host: The database host.
+    | - db_name: The database name.
+    | - db_username: The database username.
+    | - db_password: The database password.
+    | - db_port: The database port.
+    | - db_use_ssh: Whether to use an SSH tunnel to connect to the database.
+    | - db_ssh_tunnel_port: The local port to use for the SSH tunnel.
+    |
     */
 
     'environments' => [
@@ -16,9 +32,10 @@ return [
             'ssh_host' => env('LEI_STAGING_SSH_HOST'),
             'ssh_username' => env('LEI_STAGING_SSH_USERNAME'),
             'ssh_key' => env('LEI_STAGING_SSH_KEY', '~/.ssh/id_rsa'),
-            'ssh_password' => env('LEI_STAGING_SSH_PASSWORD'), // Overrules ssh_key if present
+            'ssh_password' => env('LEI_STAGING_SSH_PASSWORD'),
             'ssh_base_path' => env('LEI_STAGING_SSH_BASE_PATH'),
 
+            'db_type' => env('LEI_STAGING_DB_TYPE', 'mysql'),
             'db_host' => env('LEI_STAGING_DB_HOST'),
             'db_name' => env('LEI_STAGING_DB_NAME'),
             'db_username' => env('LEI_STAGING_DB_USERNAME'),
@@ -32,9 +49,10 @@ return [
             'ssh_host' => env('LEI_PRODUCTION_SSH_HOST'),
             'ssh_username' => env('LEI_PRODUCTION_SSH_USERNAME'),
             'ssh_key' => env('LEI_PRODUCTION_SSH_KEY', '~/.ssh/id_rsa'),
-            'ssh_password' => env('LEI_PRODUCTION_SSH_PASSWORD'), // Overrules ssh_key if present
+            'ssh_password' => env('LEI_PRODUCTION_SSH_PASSWORD'),
             'ssh_base_path' => env('LEI_PRODUCTION_SSH_BASE_PATH'),
 
+            'db_type' => env('LEI_PRODUCTION_DB_TYPE', 'mysql'),
             'db_host' => env('LEI_PRODUCTION_DB_HOST'),
             'db_name' => env('LEI_PRODUCTION_DB_NAME'),
             'db_username' => env('LEI_PRODUCTION_DB_USERNAME'),

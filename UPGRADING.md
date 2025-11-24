@@ -16,8 +16,11 @@ across such a case, please let us know by [opening an issue][issues], or by addi
 * The `db_timeout` configuration option was added (default: `60`, same as the default shell command timeout).
   Set the option to `null` to disable the timeout.
 
-* The `db_ssh_tunnel_timeout` configuration was added (default: `30` seconds). This sets the timeout for establishing
+* The `db_ssh_tunnel_timeout` configuration option was added (default: `30` seconds). This sets the timeout for establishing
   an SSH tunnel to the remote database server. Set the option to `null` to disable the timeout.
+
+* The `db_type` configuration option was added to `environments.*`. This allows specifying the database type of the remote
+  environment (`mysql` (default), `mariadb`, `mongodb`, `pgsql` or `sqlite`).
 
 ## v0.6.0
 
