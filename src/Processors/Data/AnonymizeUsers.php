@@ -102,6 +102,10 @@ class AnonymizeUsers extends DataProcessor
      */
     protected function maybeHandleStatamicTwoFactor(Authenticatable|Model $user): void
     {
+        if (! ((bool) ($this->options['handle_statamic_2fa'] ?? true))) {
+            return;
+        }
+
         if (!class_exists('Statamic\Facades\User') || !class_exists('MityDigital\StatamicTwoFactor\Actions\DisableTwoFactorAuthentication')) {
             return;
         }

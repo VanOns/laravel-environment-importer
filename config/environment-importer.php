@@ -211,6 +211,7 @@ return [
         //    'preserve_emails' => ['@example.com', 'john@doe.com'],
         //    'email_domain' => 'example.com',
         //    'password_override' => 'password',
+        //    'handle_statamic_2fa' => false,
         //],
     ],
 
