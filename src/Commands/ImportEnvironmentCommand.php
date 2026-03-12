@@ -24,7 +24,6 @@ use VanOns\LaravelEnvironmentImporter\Notifications\ImportSucceeded;
 use VanOns\LaravelEnvironmentImporter\Processors\Data\DataProcessor;
 use VanOns\LaravelEnvironmentImporter\Processors\Database\DatabaseProcessor;
 use VanOns\LaravelEnvironmentImporter\Support\AsyncProcess;
-
 use function Laravel\Prompts\select;
 
 class ImportEnvironmentCommand extends Command
@@ -82,6 +81,7 @@ class ImportEnvironmentCommand extends Command
             $this->importDatabase();
             $this->importFiles();
             $this->flushCache();
+            $this->runPostImportCommands();
             $this->finish();
         } catch (Exception $e) {
             $this->error($e->getMessage());
@@ -704,6 +704,39 @@ class ImportEnvironmentCommand extends Command
         Artisan::call('migrate', ['--force' => true], $this->output);
 
         $this->info('[DB] Ran database migrations.');
+    }
+
+    /**
+     * Run post import commands.
+     */
+    protected function runPostImportCommands(): void
+    {
+        $commands = $this->getConfigValue('post_import_commands', []);
+
+        if (empty($commands)) {
+            return;
+        }
+
+        $this->line('[CMD] Running post import commands...');
+
+        foreach ($commands as $key => $value) {
+            if (is_int($key)) {
+                $commandClass = $value;
+                $options = [];
+            } else {
+                $commandClass = $key;
+                $options = $value;
+            }
+
+            if (!is_a($commandClass, Command::class, true)) {
+                throw new ImportEnvironmentException('The post-import command "' . $commandClass . '" must extend "' . Command::class . '"');
+            }
+
+            $this->line("[CMD] Running post-import command: $commandClass");
+            Artisan::call($commandClass, $options);
+        }
+
+        $this->info('[CMD] Ran post import commands.');
     }
 
     /**
