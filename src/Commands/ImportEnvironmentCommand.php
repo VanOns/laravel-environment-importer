@@ -24,7 +24,6 @@ use VanOns\LaravelEnvironmentImporter\Notifications\ImportSucceeded;
 use VanOns\LaravelEnvironmentImporter\Processors\Data\DataProcessor;
 use VanOns\LaravelEnvironmentImporter\Processors\Database\DatabaseProcessor;
 use VanOns\LaravelEnvironmentImporter\Support\AsyncProcess;
-
 use function Laravel\Prompts\select;
 
 class ImportEnvironmentCommand extends Command
@@ -349,8 +348,13 @@ class ImportEnvironmentCommand extends Command
             ->setPort($port)
             ->setDumpBinaryPath($this->getConfigValue('db_dump_binary_path', '/usr/bin'));
 
-        // Allow skipping SSL when connecting to remote database, only supported by MySQL.
-        if (!$local && $dbType === 'mysql' && $this->getEnvironmentConfigValue('db_skip_ssl', false)) {
+        // Allow skipping SSL when connecting to database, only supported by MySQL.
+        if ($dbType === 'mysql'
+            && (
+                (!$local && $this->getEnvironmentConfigValue('db_skip_ssl', false))
+                || ($local && $this->getEnvironmentConfigValue('skip_ssl_local', false))
+            )
+        ) {
             $client->setSkipSsl();
         }
 
