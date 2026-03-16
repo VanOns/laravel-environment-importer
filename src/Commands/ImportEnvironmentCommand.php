@@ -348,7 +348,7 @@ class ImportEnvironmentCommand extends Command
             ->setPort($port)
             ->setDumpBinaryPath($this->getConfigValue('db_dump_binary_path', '/usr/bin'));
 
-        // Allow skipping SSL when connecting to remote database, only supported by MySQL.
+        // Allow skipping SSL when connecting to database, only supported by MySQL.
         if ($dbType === 'mysql'
             && (
                 (!$local && $this->getEnvironmentConfigValue('db_skip_ssl', false))
