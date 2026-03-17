@@ -924,13 +924,15 @@ class ImportEnvironmentCommand extends Command
                 foreach (explode("\n", trim($buffer->fetch())) as $outputLine) {
                     $this->line("  | {$outputLine}");
                 }
-            } else {
+            } elseif (is_string($command)) {
                 Process::fromShellCommandline($command)
                     ->run(function ($type, $buffer) {
                         foreach (explode("\n", trim($buffer)) as $outputLine) {
                             $this->line("  | {$outputLine}");
                         }
                     });
+            } else {
+                $this->warn("[CMD] Invalid post-import command: \"{$label}\"");
             }
         }
 
