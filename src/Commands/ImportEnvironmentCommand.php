@@ -352,7 +352,7 @@ class ImportEnvironmentCommand extends Command
         if ($dbType === 'mysql'
             && (
                 (!$local && $this->getEnvironmentConfigValue('db_skip_ssl', false))
-                || ($local && $this->getEnvironmentConfigValue('skip_ssl_local', false))
+                || ($local && $this->getConfigValue('skip_ssl_local', false))
             )
         ) {
             $client->setSkipSsl();
