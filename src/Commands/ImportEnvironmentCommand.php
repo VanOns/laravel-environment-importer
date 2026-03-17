@@ -17,6 +17,7 @@ use Spatie\DbDumper\Databases\MySql;
 use Spatie\DbDumper\Databases\PostgreSql;
 use Spatie\DbDumper\Databases\Sqlite;
 use Spatie\DbDumper\Exceptions\CannotSetParameter;
+use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Process\Process;
 use VanOns\LaravelEnvironmentImporter\Exceptions\ImportEnvironmentException;
 use VanOns\LaravelEnvironmentImporter\Notifications\ImportFailed;
@@ -81,6 +82,7 @@ class ImportEnvironmentCommand extends Command
             $this->importDatabase();
             $this->importFiles();
             $this->flushCache();
+            $this->runPostImportCommands();
             $this->finish();
         } catch (Exception $e) {
             $this->error($e->getMessage());
@@ -888,6 +890,57 @@ class ImportEnvironmentCommand extends Command
         Artisan::call('optimize:clear', outputBuffer: $this->output);
 
         $this->info('[Cache] Cache flushed.');
+    }
+
+    /**
+     * Run post import commands.
+     */
+    protected function runPostImportCommands(): void
+    {
+        $commands = $this->getConfigValue('post_import_commands', []);
+
+        if (empty($commands)) {
+            return;
+        }
+
+        $this->line('[CMD] Running post import commands...');
+
+        foreach ($commands as $key => $value) {
+            if (is_int($key)) {
+                $command = $value;
+                $options = [];
+            } else {
+                $command = $key;
+                $options = $value;
+            }
+
+            $label = is_a($command, Command::class, true)
+                ? class_basename($command)
+                : $command;
+
+            $this->line("[CMD] Running post-import command: \"{$label}\"");
+
+            if (is_a($command, Command::class, true)) {
+                $buffer = new BufferedOutput();
+
+                Artisan::call($command, $options, $buffer);
+
+                foreach (explode("\n", trim($buffer->fetch())) as $outputLine) {
+                    $this->line("  | {$outputLine}");
+                }
+            } elseif (is_string($command)) {
+                Process::fromShellCommandline($command)
+                    ->run(function ($type, $buffer) {
+                        foreach (explode("\n", trim($buffer)) as $outputLine) {
+                            $this->line("  | {$outputLine}");
+                        }
+                    });
+            } else {
+                $this->warn("[CMD] Invalid post-import command: \"{$label}\"");
+            }
+        }
+
+        $this->info('[CMD] Ran post import commands.');
     }
 
     /**
