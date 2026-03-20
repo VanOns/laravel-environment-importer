@@ -138,7 +138,7 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Skip SSL local
+    | Database Skip SSL Local
     |--------------------------------------------------------------------------
     |
     | Enable skipping SSL for local database dumping.
