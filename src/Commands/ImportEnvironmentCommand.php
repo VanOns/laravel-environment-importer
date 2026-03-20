@@ -357,7 +357,7 @@ class ImportEnvironmentCommand extends Command
         if (($dbType === 'mysql' || $dbType === 'mariadb')
             && (
                 (!$local && $this->getEnvironmentConfigValue('db_skip_ssl', false))
-                || ($local && $this->getConfigValue('skip_ssl_local', false))
+                || ($local && $this->getConfigValue('db_skip_ssl_local', false))
             )
         ) {
             $client->setSkipSsl();

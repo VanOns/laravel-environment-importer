@@ -137,15 +137,15 @@ return [
     'backup_path' => env('LEI_BACKUP_PATH', '.import'),
 
     /*
-   |--------------------------------------------------------------------------
-   | Skip SSL local
-   |--------------------------------------------------------------------------
-   |
-   | Enable skipping SSL for local database dumping.
-   |
-   */
+    |--------------------------------------------------------------------------
+    | Skip SSL local
+    |--------------------------------------------------------------------------
+    |
+    | Enable skipping SSL for local database dumping.
+    |
+    */
 
-    'skip_ssl_local' => env('LEI_SKIP_SSL_LOCAL', false),
+    'db_skip_ssl_local' => env('LEI_DB_SKIP_SSL_LOCAL', false),
 
     /*
     |--------------------------------------------------------------------------
