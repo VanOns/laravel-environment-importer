@@ -25,6 +25,7 @@ use VanOns\LaravelEnvironmentImporter\Notifications\ImportSucceeded;
 use VanOns\LaravelEnvironmentImporter\Processors\Data\DataProcessor;
 use VanOns\LaravelEnvironmentImporter\Processors\Database\DatabaseProcessor;
 use VanOns\LaravelEnvironmentImporter\Support\AsyncProcess;
+
 use function Laravel\Prompts\select;
 
 class ImportEnvironmentCommand extends Command
@@ -318,6 +319,8 @@ class ImportEnvironmentCommand extends Command
 
     /**
      * Get the database dump client.
+     *
+     * @throws ImportEnvironmentException
      */
     protected function getDatabaseDumpClient(bool $local = false): MySql
     {
@@ -341,7 +344,7 @@ class ImportEnvironmentCommand extends Command
             default => MySql::class,
         };
 
-        /** @phpstan-ignore-next-line */
+        /** @var MariaDb|MongoDb|MySql|PostgreSql|Sqlite $client */
         $client = $db::create()
             ->setHost($local ? DB::getConfig('host') : $this->getEnvironmentConfigValue('db_host'))
             ->setDbName($local ? DB::getConfig('database') : $this->getEnvironmentConfigValue('db_name'))
@@ -358,6 +361,22 @@ class ImportEnvironmentCommand extends Command
             )
         ) {
             $client->setSkipSsl();
+        }
+
+        // Apply a lock-avoidance strategy when dumping the remote MySQL/MariaDB database to
+        // prevent metadata locks from blocking writes on the remote server during the dump.
+        if (!$local && ($dbType === 'mysql' || $dbType === 'mariadb')) {
+            $noLockStrategy = $this->getConfigValue('db_no_lock_strategy');
+
+            if ($noLockStrategy === 'single_transaction') {
+                $client->useSingleTransaction();
+            } elseif ($noLockStrategy === 'skip_lock_tables') {
+                $client->skipLockTables();
+            } elseif ($noLockStrategy !== null && $noLockStrategy !== '') {
+                throw new ImportEnvironmentException(
+                    "Unknown db_no_lock_strategy value \"{$noLockStrategy}\". Valid values: \"single_transaction\", \"skip_lock_tables\", null."
+                );
+            }
         }
 
         return $client;

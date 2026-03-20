@@ -149,6 +149,32 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Database No-Lock Strategy
+    |--------------------------------------------------------------------------
+    |
+    | Strategy to use when dumping the remote database to avoid holding metadata
+    | locks that can block writes and saturate the connection pool on the remote
+    | server.
+    |
+    | Supported values:
+    | - `single_transaction`: Wraps the entire dump in a REPEATABLE READ
+    |   transaction. No locks are held. Requires all tables to use InnoDB
+    |   (the default for MySQL >= 5.6 and MariaDB >= 10.2). Recommended.
+    | - `skip_lock_tables`: Dumps each table independently without locking.
+    |   Works for any storage engine but the snapshot is not transactionally
+    |   consistent.
+    | - `null`: Disables the feature. No flag is passed to the dump binary.
+    |   Preserves the behavior of older versions of this package.
+    |
+    | Only applies to MySQL and MariaDB remote dumps. Has no effect on local
+    | backup dumps or on PostgreSQL, SQLite, and MongoDB.
+    |
+    */
+
+    'db_no_lock_strategy' => env('LEI_DB_NO_LOCK_STRATEGY', 'single_transaction'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Import Paths
     |--------------------------------------------------------------------------
     |
