@@ -353,6 +353,10 @@ class ImportEnvironmentCommand extends Command
             ->setPort($port)
             ->setDumpBinaryPath($this->getConfigValue('db_dump_binary_path', '/usr/bin'));
 
+        if (!$local && $this->dbUseSsh()) {
+            $client->addExtraOption('--protocol=TCP');
+        }
+
         // Allow skipping SSL when connecting to database, only supported by MySQL & MariaDB.
         if (($dbType === 'mysql' || $dbType === 'mariadb')
             && (
@@ -396,11 +400,11 @@ class ImportEnvironmentCommand extends Command
         if (!$this->dbTunnelProcess) {
             $this->dbTunnelProcess = new AsyncProcess([
                 'ssh',
+                '-o', 'StrictHostKeyChecking=no',
                 '-N',
-                '-L',
-                "{$this->dbSshTunnelPort()}:127.0.0.1:{$this->dbPort()}",
+                '-L', "{$this->dbSshTunnelPort()}:127.0.0.1:{$this->dbPort()}",
                 "{$this->getEnvironmentConfigValue('ssh_username')}@{$this->getEnvironmentConfigValue('ssh_host')}",
-                $this->sshAuth(),
+                ...explode(' ', $this->sshAuth()),
             ]);
         }
 
@@ -576,7 +580,7 @@ class ImportEnvironmentCommand extends Command
         $this->line('[DB] Importing database dump...');
 
         match ($connection = DB::getDefaultConnection()) {
-            'mysql' => $this->importMysqlDump($dumpFile),
+            'mysql', 'mariadb' => $this->importMysqlDump($dumpFile),
             'sqlite' => $this->importSqliteDump($dumpFile),
             'pgsql' => $this->importPgsqlDump($dumpFile),
             default => throw new ImportEnvironmentException('Unsupported database connection type: ' . $connection),
