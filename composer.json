@@ -1,13 +1,13 @@
 {
     "name": "van-ons/laravel-environment-importer",
     "description": "A Laravel package for easy importing of a configured environment.",
-    "type": "library",
-    "license": "MIT",
     "keywords": [
         "laravel",
         "environment",
         "import"
     ],
+    "type": "library",
+    "license": "MIT",
     "authors": [
         {
             "name": "Danique Wijnalda",

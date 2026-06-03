@@ -1,10 +1,9 @@
-# Laravel Translations Sync
+# Laravel Environment Importer
 
 ## Contents
 
 1. [Introduction](introduction.md)
-2. [Requirements](requirements.md)
-3. [Installation](installation.md)
-4. [Basic usage](basic-usage.md)
-5. [Upgrading](upgrading.md)
-6. [Changelog](changelog.md)
+2. [Installation](installation.md)
+3. [Basic usage](basic-usage.md)
+4. [Upgrading](upgrading.md)
+5. [Changelog](changelog.md)
