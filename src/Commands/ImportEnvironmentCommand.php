@@ -2,7 +2,7 @@
 
 namespace VanOns\LaravelEnvironmentImporter\Commands;
 
-use Carbon\Carbon;
+use Carbon\CarbonInterface;
 use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Arr;
@@ -57,7 +57,7 @@ class ImportEnvironmentCommand extends Command
 
     protected bool $skipFiles = false;
 
-    protected Carbon $startedAt;
+    protected CarbonInterface $startedAt;
 
     protected string $target;
 
