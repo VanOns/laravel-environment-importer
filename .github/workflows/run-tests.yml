@@ -1,0 +1,80 @@
+name: Run tests
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [ opened, synchronize, reopened ]
+    branches-ignore:
+      - 'dependabot/github_actions/*'
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    name: 'Test: P${{ matrix.php }} - L${{ matrix.laravel }} - ${{ matrix.stability }} - ${{ matrix.os }}'
+
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ ubuntu-latest ]
+        php: [ 8.2, 8.3, 8.4 ]
+        laravel: [ 10.*, 11.*, 12.*, 13.* ]
+        stability: [ prefer-lowest, prefer-stable ]
+        include:
+          - laravel: 10.*
+            testbench: ^7.0
+          - laravel: 11.*
+            testbench: ^9.0
+          - laravel: 12.*
+            testbench: ^10.0
+          - laravel: 13.*
+            testbench: ^11.0
+        exclude:
+          - laravel: 13.*
+            php: 8.2
+
+    steps:
+      - name: 📄 Clone repository
+        uses: actions/checkout@v6
+
+      - name: ⚙️Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+
+      - name: ⚙️Set up problem matchers
+        run: |
+          echo "::add-matcher::${{ runner.tool_cache }}/php.json"
+          echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
+
+      - name: ⬇️Install Composer dependencies
+        run: |
+          composer require "laravel/framework:${{ matrix.laravel }}" --no-interaction --no-update
+          composer require --dev "orchestra/testbench:${{ matrix.testbench }}" --no-interaction --no-update
+          composer update --${{ matrix.stability }} -W --prefer-dist --no-progress --no-ansi --no-interaction
+
+      - name: 🧪 Run Pest tests
+        run: composer run test
+
+  analyse:
+    runs-on: ubuntu-latest
+    name: Analyse
+
+    steps:
+      - name: 📄 Clone repository
+        uses: actions/checkout@v6
+
+      - name: ⚙️Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.2
+          coverage: none
+
+      - name: ⬇️Install Composer dependencies
+        run: composer validate --no-check-publish && composer install --prefer-dist --no-progress --no-ansi --no-interaction --optimize-autoloader
+
+      - name: 🕵️Run PHPStan
+        run: composer run analyse
+
+      - name: 🧑‍🔧Run PHP-CS-Fixer
+        run: composer run format:check
