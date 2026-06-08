@@ -1,4 +1,4 @@
-# Basic usage
+# Usage
 
 You can execute the synchronization command by running:
 

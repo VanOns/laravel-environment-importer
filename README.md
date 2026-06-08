@@ -36,8 +36,6 @@ You can execute the import command by running:
 php artisan environment:import
 ````
 
-See [Basic usage](docs/basic-usage.md) for more information.
-
 ## Documentation
 
 Please see the [documentation](docs/README.md) for detailed information about installation and usage.
