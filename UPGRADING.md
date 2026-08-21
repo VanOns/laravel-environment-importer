@@ -4,6 +4,12 @@ We aim to make upgrading between versions as smooth as possible, but sometimes i
 This document will outline those steps. And as much as we try to cover all cases, we might miss some. If you come
 across such a case, please let us know by [opening an issue][issues], or by adding it yourself and creating a pull request.
 
+## v1.0.0
+
+* The minimum PHP version was raised to `8.2`.
+* The minimum Laravel version was raised to `11.0`.
+* Support for Laravel 13 was added.
+
 ## v0.10.0
 
 * The `db_no_lock_strategy` configuration option was added. This allows for applying a lock-avoidance strategy when dumping

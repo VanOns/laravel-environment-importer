@@ -11,7 +11,7 @@ environment. Supports SSH tunnels, multiple DB engines, file sync via `rsync`, a
 plugin system for post-import data transformations.
 
 - **Namespace root:** `VanOns\LaravelEnvironmentImporter`
-- **PHP:** `^8.0` | **Laravel:** `>=10`
+- **PHP:** `^8.2` | **Laravel:** `>=11`
 - **Source:** `src/` | **Config:** `config/`
 
 ---
