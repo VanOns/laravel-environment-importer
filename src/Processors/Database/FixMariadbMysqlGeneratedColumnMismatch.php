@@ -21,7 +21,8 @@ class FixMariadbMysqlGeneratedColumnMismatch extends DatabaseProcessor
         $outputHandle = fopen($tempFile, 'wb');
 
         while (($line = fgets($inputHandle)) !== false) {
-            // MySQL doesn't support values for generated columns, which MariaDB does.
+            // MariaDB's mysqldump writes literal values for generated columns in INSERT statements,
+            // but MySQL only accepts DEFAULT for a generated column's value — causing import to fail.
             // This is a workaround to make the dump compatible with MySQL by replacing the generated column definition with a regular NOT NULL column.
             // Source: https://dba.stackexchange.com/a/279248
             $fixedLine = preg_replace('/GENERATED ALWAYS AS\s*\(.*\)\s*(VIRTUAL|STORED)/i', 'NOT NULL', $line);
