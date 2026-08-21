@@ -2,7 +2,7 @@
 
 namespace VanOns\LaravelEnvironmentImporter\Notifications;
 
-use Carbon\Carbon;
+use Carbon\CarbonInterface;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -14,8 +14,8 @@ class ImportSucceeded extends Notification implements ShouldQueue
     use Queueable;
 
     public function __construct(
-        protected Carbon $startedAt,
-        protected Carbon $finishedAt,
+        protected CarbonInterface $startedAt,
+        protected CarbonInterface $finishedAt,
     ) {
     }
 

@@ -2,6 +2,7 @@
 
 # Laravel Environment Importer
 
+[![Tests](https://github.com/VanOns/laravel-environment-importer/actions/workflows/run-tests.yml/badge.svg)](https://github.com/VanOns/laravel-environment-importer/actions/workflows/run-tests.yml)
 [![Latest version on GitHub](https://img.shields.io/github/release/VanOns/laravel-environment-importer.svg?style=flat-square)](https://github.com/VanOns/laravel-environment-importer/releases)
 [![Total downloads](https://img.shields.io/packagist/dt/van-ons/laravel-environment-importer.svg?style=flat-square)](https://packagist.org/packages/van-ons/laravel-environment-importer)
 [![GitHub issues](https://img.shields.io/github/issues/VanOns/laravel-environment-importer?style=flat-square)](https://github.com/VanOns/laravel-environment-importer/issues)
@@ -10,13 +11,6 @@
 A Laravel package for easy importing of a configured environment.
 
 ## Quick start
-
-### Requirements
-
-| Dependency | Minimum version |
-|------------|-----------------|
-| PHP        | 8.0             |
-| Laravel    | 10.0            |
 
 ### Installation
 
@@ -42,8 +36,6 @@ You can execute the import command by running:
 php artisan environment:import
 ````
 
-See [Basic usage](docs/basic-usage.md) for more information.
-
 ## Documentation
 
 Please see the [documentation](docs/README.md) for detailed information about installation and usage.
@@ -51,6 +43,12 @@ Please see the [documentation](docs/README.md) for detailed information about in
 ## Contributing
 
 Please see [Contributing](CONTRIBUTING.md) for more information about how you can contribute.
+
+## Testing
+
+```bash
+composer test
+```
 
 ## Changelog
 
