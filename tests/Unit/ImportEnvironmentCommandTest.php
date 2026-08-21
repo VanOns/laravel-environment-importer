@@ -6,6 +6,32 @@ use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\NullOutput;
 use VanOns\LaravelEnvironmentImporter\Commands\ImportEnvironmentCommand;
 use VanOns\LaravelEnvironmentImporter\Exceptions\ImportEnvironmentException;
+use VanOns\LaravelEnvironmentImporter\Processors\Database\DatabaseProcessor;
+
+class AppliesTrueDatabaseProcessor extends DatabaseProcessor
+{
+    public static array $calls = [];
+
+    public function process(): void
+    {
+        self::$calls[] = $this->options;
+    }
+}
+
+class AppliesFalseDatabaseProcessor extends DatabaseProcessor
+{
+    public static array $calls = [];
+
+    public function applies(): bool
+    {
+        return false;
+    }
+
+    public function process(): void
+    {
+        self::$calls[] = $this->options;
+    }
+}
 
 function makeCommand(array $config = [], array $envConfig = []): ImportEnvironmentCommand
 {
@@ -238,6 +264,37 @@ describe('processDatabaseDump', function () {
 
         expect(fn () => callMethod($command, 'processDatabaseDump', '/tmp/dump.sql'))
             ->toThrow(ImportEnvironmentException::class, 'must extend');
+    });
+
+    it('skips a processor when it does not apply', function () {
+        AppliesFalseDatabaseProcessor::$calls = [];
+
+        $command = makeCommandWithOutput(['database_processors' => [AppliesFalseDatabaseProcessor::class]]);
+        callMethod($command, 'processDatabaseDump', '/tmp/dump.sql', 'mariadb', 'mysql');
+
+        expect(AppliesFalseDatabaseProcessor::$calls)->toBe([]);
+    });
+
+    it('runs a processor when it applies', function () {
+        AppliesTrueDatabaseProcessor::$calls = [];
+
+        $command = makeCommandWithOutput(['database_processors' => [AppliesTrueDatabaseProcessor::class]]);
+        callMethod($command, 'processDatabaseDump', '/tmp/dump.sql', 'mariadb', 'mysql');
+
+        expect(AppliesTrueDatabaseProcessor::$calls)->toHaveCount(1);
+    });
+
+    it('passes the source and target db types to processor options', function () {
+        AppliesTrueDatabaseProcessor::$calls = [];
+
+        $command = makeCommandWithOutput(['database_processors' => [AppliesTrueDatabaseProcessor::class => ['opt' => true]]]);
+        callMethod($command, 'processDatabaseDump', '/tmp/dump.sql', 'mariadb', 'mysql');
+
+        expect(AppliesTrueDatabaseProcessor::$calls[0])->toBe([
+            'opt' => true,
+            'source_db_type' => 'mariadb',
+            'target_db_type' => 'mysql',
+        ]);
     });
 });
 
