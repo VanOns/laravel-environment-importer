@@ -7,6 +7,7 @@
 [![Total downloads](https://img.shields.io/packagist/dt/van-ons/laravel-environment-importer.svg?style=flat-square)](https://packagist.org/packages/van-ons/laravel-environment-importer)
 [![GitHub issues](https://img.shields.io/github/issues/VanOns/laravel-environment-importer?style=flat-square)](https://github.com/VanOns/laravel-environment-importer/issues)
 [![License](https://img.shields.io/github/license/VanOns/laravel-environment-importer?style=flat-square)](https://github.com/VanOns/laravel-environment-importer/blob/main/LICENSE.md)
+[![Plumb score](https://img.shields.io/badge/dynamic/regex?url=https%3A%2F%2Fplumbphp.dev%2Fbadges%2Fvan-ons%2Flaravel-environment-importer%2Fcomposite.svg&search=%3Ctitle%3Eplumb%3A%5Cs%2A%28%5B%5E%3C%5D%2B%29%3C&replace=%241&label=plumb&style=flat-square)](https://plumbphp.dev/van-ons/laravel-environment-importer)
 
 A Laravel package for easy importing of a configured environment.
 
