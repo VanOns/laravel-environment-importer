@@ -304,7 +304,7 @@ class ImportEnvironmentCommand extends Command
 
         $this->afterRemoteDatabaseConnection();
         $this->buildDumpFile($dumpFile, $baseDumpFile, $files);
-        $this->processDatabaseDump($dumpFile);
+        $this->processDatabaseDump($dumpFile, $this->dbType(false), $this->dbType(true));
 
         $this->line('[DB] Deleting intermediate dump files...');
 
@@ -315,6 +315,17 @@ class ImportEnvironmentCommand extends Command
         ]);
 
         $this->info("[DB] Dumped target database to \"{$dumpFile}\".");
+    }
+
+    /**
+     * Get the database driver type for the local or remote database.
+     */
+    protected function dbType(bool $local = false): string
+    {
+        return match ($local) {
+            true => DB::getDriverName(),
+            false => $this->getEnvironmentConfigValue('db_type', 'mysql'),
+        };
     }
 
     /**
@@ -330,10 +341,7 @@ class ImportEnvironmentCommand extends Command
             default => $this->dbPort(),
         };
 
-        $dbType = match ($local) {
-            true => DB::getDriverName(),
-            false => $this->getEnvironmentConfigValue('db_type', 'mysql'),
-        };
+        $dbType = $this->dbType($local);
 
         /** @var class-string<MariaDb|MongoDb|MySql|PostgreSql|Sqlite> $db */
         $db = match ($dbType) {
@@ -525,7 +533,7 @@ class ImportEnvironmentCommand extends Command
      *
      * @throws ImportEnvironmentException
      */
-    protected function processDatabaseDump(string $dumpFile): void
+    protected function processDatabaseDump(string $dumpFile, ?string $sourceDbType = null, ?string $targetDbType = null): void
     {
         $processors = $this->getConfigValue('database_processors', []);
 
@@ -549,10 +557,18 @@ class ImportEnvironmentCommand extends Command
                 throw new ImportEnvironmentException('The processor "' . $processorClass . '" must extend "' . DatabaseProcessor::class . '"');
             }
 
+            $options = [
+                ...$options,
+                'source_db_type' => $sourceDbType,
+                'target_db_type' => $targetDbType,
+            ];
+
             $processor = new $processorClass($dumpFile, $options);
 
-            $this->line("[DB] Processing database dump using \"{$processorClass}\"...");
-            $processor->process();
+            if ($processor->applies()) {
+                $this->line("[DB] Processing database dump using \"{$processorClass}\"...");
+                $processor->process();
+            }
         }
 
         $this->info('[DB] Processed database dump.');

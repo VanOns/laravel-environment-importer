@@ -228,6 +228,7 @@ return [
 
     'database_processors' => [
         \VanOns\LaravelEnvironmentImporter\Processors\Database\FixCommonMySQLErrors::class,
+        \VanOns\LaravelEnvironmentImporter\Processors\Database\FixMariadbMysqlGeneratedColumnMismatch::class,
     ],
 
     /*
