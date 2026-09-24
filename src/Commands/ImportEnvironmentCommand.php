@@ -303,7 +303,7 @@ class ImportEnvironmentCommand extends Command
             }
         }
 
-        $this->line('[DB] Processing other tables...');
+        $this->line('[DB] Processing tables...');
 
         $baseDumpFile = "{$dumpPath}/{$this->target}_base.sql";
         $this->getDatabaseDumpClient()
