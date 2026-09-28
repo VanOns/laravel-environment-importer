@@ -21,6 +21,14 @@ abstract class DatabaseProcessor
     }
 
     /**
+     * Check if the processor applies to the current dump.
+     */
+    public function applies(): bool
+    {
+        return true;
+    }
+
+    /**
      * Run the processor.
      */
     abstract public function process(): void;
