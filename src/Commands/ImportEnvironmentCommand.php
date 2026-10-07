@@ -219,11 +219,11 @@ class ImportEnvironmentCommand extends Command
             $this->importDatabaseDump($dumpFile);
             $this->processDatabaseData();
         } catch (Exception $exception) {
-            $this->afterDatabaseImport($dumpPath);
             throw $exception;
+        } finally {
+            $this->afterDatabaseImport($dumpPath);
         }
 
-        $this->afterDatabaseImport($dumpPath);
         $this->runDatabaseMigrations();
 
         $this->info('[DB] Database imported.');
