@@ -212,10 +212,18 @@ class ImportEnvironmentCommand extends Command
 
         $this->createLocalBackupDump($dumpPath);
         $this->createDumpForImport($dumpPath, $dumpFile);
-        $this->wipeLocalDatabase();
-        $this->importDatabaseDump($dumpFile);
-        $this->processDatabaseData();
-        $this->afterDatabaseImport($dumpPath);
+
+        // If the dump is created successfully but the import fails, still check for removal before failing the command
+        try {
+            $this->wipeLocalDatabase();
+            $this->importDatabaseDump($dumpFile);
+            $this->processDatabaseData();
+        } catch (Exception $exception) {
+            throw $exception;
+        } finally {
+            $this->afterDatabaseImport($dumpPath);
+        }
+
         $this->runDatabaseMigrations();
 
         $this->info('[DB] Database imported.');
@@ -295,7 +303,7 @@ class ImportEnvironmentCommand extends Command
             }
         }
 
-        $this->line('[DB] Processing other tables...');
+        $this->line('[DB] Processing tables...');
 
         $baseDumpFile = "{$dumpPath}/{$this->target}_base.sql";
         $this->getDatabaseDumpClient()
