@@ -101,8 +101,8 @@ return [
     | Database Timeout
     |--------------------------------------------------------------------------
     |
-    | Timeout (in seconds) for database operations. This includes dumping and
-    | importing the database.
+    | Timeout (in seconds) for importing the database dump. Dumping the remote
+    | database has no timeout.
     |
     | Set to `null` to disable the timeout.
     |
