@@ -1,5 +1,9 @@
 <?php
 
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Foundation\Auth\User;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use VanOns\LaravelEnvironmentImporter\Processors\Data\AnonymizeUsers;
 
 it('applies to the users table', function () {
@@ -41,4 +45,34 @@ it('returns null for password override when not configured', function () {
     $processor = new AnonymizeUsers('users');
     $method = new ReflectionMethod($processor, 'getPasswordOverride');
     expect($method->invoke($processor))->toBeNull();
+});
+
+it('anonymizes the name column of the default Laravel users table', function () {
+    $this->loadLaravelMigrations();
+    config(['auth.providers.users.model' => User::class]);
+    DB::table('users')->insert(['name' => 'Jane Doe', 'email' => 'jane@client.nl', 'password' => 'secret']);
+
+    (new AnonymizeUsers('users'))->process();
+
+    $user = DB::table('users')->first();
+    expect($user->name)->toStartWith('User_')
+        ->and($user->email)->toBe(strtolower($user->name) . '@example.com');
+});
+
+it('anonymizes first_name and last_name when the users table has them', function () {
+    Schema::create('users', function (Blueprint $table) {
+        $table->id();
+        $table->string('first_name');
+        $table->string('last_name');
+        $table->string('email')->unique();
+    });
+    config(['auth.providers.users.model' => User::class]);
+    DB::table('users')->insert(['first_name' => 'Jane', 'last_name' => 'Doe', 'email' => 'jane@client.nl']);
+
+    (new AnonymizeUsers('users'))->process();
+
+    $user = DB::table('users')->first();
+    expect($user->first_name)->toStartWith('User_')
+        ->and($user->last_name)->toBe($user->first_name)
+        ->and($user->email)->toBe(strtolower($user->first_name) . '@example.com');
 });

@@ -109,7 +109,7 @@ class ClearApiTokens extends DataProcessor
 - With `db_use_ssh`, the tunnel forwards local port `db_ssh_tunnel_port` to `127.0.0.1:db_port` on the SSH host and the dump connects to `db_host` on the tunnel port, so set `db_host` to `127.0.0.1`.
 - `ssh_password` takes precedence over `ssh_key` and goes to `sshpass` through the `SSHPASS` environment variable, so `sshpass` must be installed.
 - The local import goes by the default connection's name: `mysql`, `mariadb`, `sqlite` (the dump file is copied over the database file) or `pgsql`; any other name, `mongodb` included, throws.
-- `AnonymizeUsers` runs on the `users` table through `auth.providers.users.model`, writing `first_name`, `last_name` and `email` with the query builder, so those columns must exist.
+- `AnonymizeUsers` runs on the `users` table through `auth.providers.users.model` and, with the query builder, replaces `email` and whichever of `first_name`, `last_name` and `name` the table has.
 - A `post_import_commands` string runs as a shell command line, so Artisan commands are written as `php artisan ...`; only an Artisan command class runs through `Artisan::call()`.
 - Dumps and backups (including `local.sql`, with personal data) land under `backup_path` in the project root: keep that directory git-ignored. With `--safe`, they stay there.
 - Large `rsync` runs are cut off after `db_timeout` seconds; raise it or set it to `null`.

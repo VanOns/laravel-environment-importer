@@ -6,6 +6,7 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class AnonymizeUsers extends DataProcessor
@@ -21,6 +22,8 @@ class AnonymizeUsers extends DataProcessor
             return;
         }
 
+        $nameColumns = array_values(array_intersect(['first_name', 'last_name', 'name'], Schema::getColumnListing($this->table)));
+
         /** @var Authenticatable|Model $user */
         foreach ($userModel::query()->cursor() as $user) {
             $data = [];
@@ -28,10 +31,12 @@ class AnonymizeUsers extends DataProcessor
             /** @phpstan-ignore-next-line */
             $preserveUser = !empty($this->getPreserveEmails()) && Str::contains($user->email, $this->getPreserveEmails());
             if (!$preserveUser) {
-                $name = $this->generateUniqueValue($this->table, 'first_name', 'User');
+                $name = $this->generateUniqueValue($this->table, $nameColumns[0] ?? 'email', 'User');
 
-                $data['first_name'] = $name;
-                $data['last_name'] = $name;
+                foreach ($nameColumns as $column) {
+                    $data[$column] = $name;
+                }
+
                 $data['email'] = strtolower($name) . '@' . $this->getEmailDomain();
             }
 
