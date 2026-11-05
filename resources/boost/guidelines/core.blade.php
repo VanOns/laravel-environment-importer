@@ -47,7 +47,7 @@ What it does, in order: back up the local database to `{backup_path}/{Y-m-d_H-i-
 |---|---|---|
 | `environments.{name}` | `staging`, `production` | `ssh_host`, `ssh_username`, `ssh_key` / `ssh_password`, `ssh_base_path`, `db_type` (`mysql`, `mariadb`, `mongodb`, `pgsql`, `sqlite`), `db_host`, `db_name`, `db_username`, `db_password`, `db_port`, `db_use_ssh`, `db_ssh_tunnel_port` (`3307`), `db_skip_ssl` (MySQL/MariaDB). Add more environments under any name. |
 | `db_dump_binary_path` / `db_import_binary_path` | `/usr/bin` | Env `LEI_DB_DUMP_BINARY_PATH`, `LEI_DB_IMPORT_BINARY_PATH`. |
-| `db_timeout` | `60` | Seconds; `null` for none. Also the timeout of each `rsync`. |
+| `db_timeout` | `60` | Seconds for the local `mysql` import; `null` for none. |
 | `db_ssh_tunnel_timeout` | `30` | Seconds to wait for the tunnel, e.g. while 1Password asks for approval. |
 | `db_skip_ssl_local` | `false` | For the local backup dump (MySQL/MariaDB). |
 | `db_no_lock_strategy` | `single_transaction` | Remote MySQL/MariaDB dumps: `single_transaction` (InnoDB), `skip_lock_tables` or `null`. |
@@ -112,4 +112,3 @@ class ClearApiTokens extends DataProcessor
 - `AnonymizeUsers` runs on the `users` table through `auth.providers.users.model` and, with the query builder, replaces `email` and whichever of `first_name`, `last_name` and `name` the table has.
 - A `post_import_commands` string runs as a shell command line, so Artisan commands are written as `php artisan ...`; only an Artisan command class runs through `Artisan::call()`.
 - Dumps and backups (including `local.sql`, with personal data) land under `backup_path` in the project root: keep that directory git-ignored. With `--safe`, they stay there.
-- Large `rsync` runs are cut off after `db_timeout` seconds; raise it or set it to `null`.

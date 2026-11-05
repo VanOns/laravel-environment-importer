@@ -59,7 +59,7 @@ function callMethod(object $object, string $method, mixed ...$args): mixed
     return (new ReflectionMethod($object, $method))->invoke($object, ...$args);
 }
 
-function runImportSingleWithFakeRsync(ImportEnvironmentCommand $command): array
+function runImportSingleWithFakeRsync(ImportEnvironmentCommand $command, float $seconds = 0): array
 {
     $bin = sys_get_temp_dir() . '/lei-fake-rsync-' . uniqid();
     mkdir($bin);
@@ -69,6 +69,7 @@ function runImportSingleWithFakeRsync(ImportEnvironmentCommand $command): array
         #!/bin/sh
         printf 'SSHPASS=%s\\n' "\${SSHPASS-}" > '{$log}'
         printf '%s\\n' "\$@" >> '{$log}'
+        sleep {$seconds}
         SH);
     chmod("{$bin}/rsync", 0755);
 
@@ -214,6 +215,14 @@ describe('importSingle', function () {
 
         expect($call['args'])->toContain('ssh -i ~/.ssh/id_rsa')
             ->and($call['SSHPASS'])->toBe('');
+    });
+
+    it('does not stop rsync after db_timeout', function () {
+        $command = makeCommandWithOutput(['db_timeout' => 0.5], validEnvConfig());
+
+        $call = runImportSingleWithFakeRsync($command, seconds: 1);
+
+        expect($call['args'])->toContain('deploy@example.com:/var/www/html/storage/');
     });
 });
 

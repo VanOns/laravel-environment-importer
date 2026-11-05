@@ -824,7 +824,8 @@ class ImportEnvironmentCommand extends Command
         );
 
         $progressBar = $this->getOutput()->createProgressBar();
-        $process = Process::fromShellCommandline($command, env: $this->sshEnv(), timeout: $this->getConfigValue('db_timeout'));
+        // db_timeout is for the database commands; syncing a large directory can take far longer.
+        $process = Process::fromShellCommandline($command, env: $this->sshEnv(), timeout: null);
         $total = 0;
         $current = 0;
         $rsyncStart = now();
