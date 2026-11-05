@@ -415,13 +415,12 @@ class ImportEnvironmentCommand extends Command
 
         if (!$this->dbTunnelProcess) {
             $this->dbTunnelProcess = new AsyncProcess([
-                'ssh',
+                ...$this->sshCommand(),
                 '-o', 'StrictHostKeyChecking=no',
                 '-N',
                 '-L', "{$this->dbSshTunnelPort()}:127.0.0.1:{$this->dbPort()}",
                 "{$this->getEnvironmentConfigValue('ssh_username')}@{$this->getEnvironmentConfigValue('ssh_host')}",
-                ...explode(' ', $this->sshAuth()),
-            ]);
+            ], env: $this->sshEnv());
         }
 
         if (!$this->dbTunnelProcess->isRunning()) {
@@ -815,8 +814,8 @@ class ImportEnvironmentCommand extends Command
         }
 
         $command = sprintf(
-            'rsync -zaHLK --progress --stats -e "ssh %s" %s %s@%s:%s %s',
-            $this->sshAuth(),
+            'rsync -zaHLK --progress --stats -e "%s" %s %s@%s:%s %s',
+            implode(' ', $this->sshCommand()),
             $excludesArg,
             $this->getEnvironmentConfigValue('ssh_username'),
             $this->getEnvironmentConfigValue('ssh_host'),
@@ -825,7 +824,7 @@ class ImportEnvironmentCommand extends Command
         );
 
         $progressBar = $this->getOutput()->createProgressBar();
-        $process = Process::fromShellCommandline($command, timeout: $this->getConfigValue('db_timeout'));
+        $process = Process::fromShellCommandline($command, env: $this->sshEnv(), timeout: $this->getConfigValue('db_timeout'));
         $total = 0;
         $current = 0;
         $rsyncStart = now();
@@ -1036,17 +1035,31 @@ class ImportEnvironmentCommand extends Command
         }
     }
 
-    protected function sshAuth(): string
+    /**
+     * @return list<string>
+     */
+    protected function sshCommand(): array
     {
-        if ($sshPassword = $this->getEnvironmentConfigValue('ssh_password')) {
-            return "-p {$sshPassword}";
+        // ssh has no password option; sshpass answers the prompt with $SSHPASS, which keeps it out of the process list.
+        if ($this->getEnvironmentConfigValue('ssh_password')) {
+            return ['sshpass', '-e', 'ssh'];
         }
 
         if ($sshKey = $this->getEnvironmentConfigValue('ssh_key')) {
-            return "-i {$sshKey}";
+            return ['ssh', '-i', $sshKey];
         }
 
-        return '';
+        return ['ssh'];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function sshEnv(): array
+    {
+        $sshPassword = $this->getEnvironmentConfigValue('ssh_password');
+
+        return $sshPassword ? ['SSHPASS' => (string) $sshPassword] : [];
     }
 
     protected function dbUseSsh(): bool

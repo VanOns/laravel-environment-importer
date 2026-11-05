@@ -13,7 +13,7 @@ return [
     | - ssh_host: The SSH host to connect to.
     | - ssh_username: The SSH username to use.
     | - ssh_key: The SSH private key to use (optional if ssh_password is used).
-    | - ssh_password: The SSH password to use (overrules ssh_key if present).
+    | - ssh_password: The SSH password to use (overrules ssh_key if present). Requires `sshpass`.
     | - ssh_base_path: The base path of the project on the remote server.
     |
     | - db_type: The database connection type. Supported types: `mysql` (default), `mariadb`, `mongodb`, `pgsql` and `sqlite`.

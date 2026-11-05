@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Console\OutputStyle;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\NullOutput;
@@ -56,6 +57,37 @@ function makeCommandWithOutput(array $config = [], array $envConfig = []): Impor
 function callMethod(object $object, string $method, mixed ...$args): mixed
 {
     return (new ReflectionMethod($object, $method))->invoke($object, ...$args);
+}
+
+function runImportSingleWithFakeRsync(ImportEnvironmentCommand $command): array
+{
+    $bin = sys_get_temp_dir() . '/lei-fake-rsync-' . uniqid();
+    mkdir($bin);
+    $log = "{$bin}/call.log";
+
+    file_put_contents("{$bin}/rsync", <<<SH
+        #!/bin/sh
+        printf 'SSHPASS=%s\\n' "\${SSHPASS-}" > '{$log}'
+        printf '%s\\n' "\$@" >> '{$log}'
+        SH);
+    chmod("{$bin}/rsync", 0755);
+
+    // Symfony Process builds the child environment from $_ENV first.
+    $env = $_ENV;
+    $_ENV['PATH'] = $bin . PATH_SEPARATOR . getenv('PATH');
+
+    try {
+        callMethod($command, 'importSingle', 0, 'storage');
+        $lines = file($log, FILE_IGNORE_NEW_LINES);
+    } finally {
+        $_ENV = $env;
+        File::deleteDirectory($bin);
+    }
+
+    return [
+        'args' => array_slice($lines, 1),
+        'SSHPASS' => substr($lines[0], strlen('SSHPASS=')),
+    ];
 }
 
 function validEnvConfig(): array
@@ -134,29 +166,54 @@ describe('getEnvironments', function () {
     });
 });
 
-describe('sshAuth', function () {
-    it('returns -p flag when ssh_password configured', function () {
+describe('sshCommand', function () {
+    it('runs ssh through sshpass when ssh_password configured', function () {
         $command = makeCommand([], ['ssh_password' => 'hunter2']);
 
-        expect(callMethod($command, 'sshAuth'))->toBe('-p hunter2');
+        expect(callMethod($command, 'sshCommand'))->toBe(['sshpass', '-e', 'ssh'])
+            ->and(callMethod($command, 'sshEnv'))->toBe(['SSHPASS' => 'hunter2']);
     });
 
-    it('returns -i flag when ssh_key configured', function () {
+    it('passes the key with -i when ssh_key configured', function () {
         $command = makeCommand([], ['ssh_key' => '~/.ssh/id_rsa']);
 
-        expect(callMethod($command, 'sshAuth'))->toBe('-i ~/.ssh/id_rsa');
+        expect(callMethod($command, 'sshCommand'))->toBe(['ssh', '-i', '~/.ssh/id_rsa'])
+            ->and(callMethod($command, 'sshEnv'))->toBe([]);
     });
 
-    it('returns empty string when neither configured', function () {
+    it('runs plain ssh when neither configured', function () {
         $command = makeCommand([], []);
 
-        expect(callMethod($command, 'sshAuth'))->toBe('');
+        expect(callMethod($command, 'sshCommand'))->toBe(['ssh'])
+            ->and(callMethod($command, 'sshEnv'))->toBe([]);
     });
 
     it('prefers ssh_password over ssh_key when both set', function () {
         $command = makeCommand([], ['ssh_password' => 'hunter2', 'ssh_key' => '~/.ssh/id_rsa']);
 
-        expect(callMethod($command, 'sshAuth'))->toBe('-p hunter2');
+        expect(callMethod($command, 'sshCommand'))->toBe(['sshpass', '-e', 'ssh']);
+    });
+});
+
+describe('importSingle', function () {
+    it('hands ssh_password to sshpass instead of passing it to ssh as -p', function () {
+        $command = makeCommandWithOutput(['db_timeout' => 60], array_merge(validEnvConfig(), ['ssh_password' => 'hunter2']));
+
+        $call = runImportSingleWithFakeRsync($command);
+
+        expect($call['args'])->toContain('sshpass -e ssh')
+            ->and($call['args'])->not->toContain('hunter2')
+            ->and(implode(' ', $call['args']))->not->toContain('-p hunter2')
+            ->and($call['SSHPASS'])->toBe('hunter2');
+    });
+
+    it('passes ssh_key to ssh with -i', function () {
+        $command = makeCommandWithOutput(['db_timeout' => 60], validEnvConfig());
+
+        $call = runImportSingleWithFakeRsync($command);
+
+        expect($call['args'])->toContain('ssh -i ~/.ssh/id_rsa')
+            ->and($call['SSHPASS'])->toBe('');
     });
 });
 

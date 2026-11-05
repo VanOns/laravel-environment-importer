@@ -25,7 +25,7 @@ LEI_STAGING_DB_USE_SSH=true
 </code-snippet>
 @endverbatim
 
-The machine running the import needs `ssh`, `rsync`, the dump binary for the database type (`mysqldump`, `mariadb-dump`, `pg_dump`, ...) in `db_dump_binary_path`, and `mysql` (MySQL and MariaDB) or `psql` in `db_import_binary_path`. Both default to `/usr/bin` and hold the directory only.
+The machine running the import needs `ssh` (plus `sshpass` when an environment uses `ssh_password`), `rsync`, the dump binary for the database type (`mysqldump`, `mariadb-dump`, `pg_dump`, ...) in `db_dump_binary_path`, and `mysql` (MySQL and MariaDB) or `psql` in `db_import_binary_path`. Both default to `/usr/bin` and hold the directory only.
 
 ### Command
 
@@ -107,7 +107,7 @@ class ClearApiTokens extends DataProcessor
 - **Destructive and local only.** The command wipes the database of the app it runs in and overwrites the `import_paths` directories; it has no check against running on a server. Never run it unless the user asks, never on a remote environment, and pass `--target` with `--safe` or `--clean` when no one can answer the prompts.
 - The prompt only offers an environment whose `ssh_host`, `ssh_username`, `ssh_base_path`, `db_type`, `db_host`, `db_name`, `db_username`, `db_password` and `db_port` are all filled in, plus `ssh_key` or `ssh_password`; with none complete the command stops with "No environments found to import from". `--target` is only checked against the configured names, so an incomplete one starts and fails later.
 - With `db_use_ssh`, the tunnel forwards local port `db_ssh_tunnel_port` to `127.0.0.1:db_port` on the SSH host and the dump connects to `db_host` on the tunnel port, so set `db_host` to `127.0.0.1`.
-- Use `ssh_key`. `ssh_password` takes precedence when set, but it is passed to `ssh` as `-p`, which `ssh` reads as a port.
+- `ssh_password` takes precedence over `ssh_key` and goes to `sshpass` through the `SSHPASS` environment variable, so `sshpass` must be installed.
 - The local import goes by the default connection's name: `mysql`, `mariadb`, `sqlite` (the dump file is copied over the database file) or `pgsql`; any other name, `mongodb` included, throws.
 - `AnonymizeUsers` runs on the `users` table through `auth.providers.users.model`, writing `first_name`, `last_name` and `email` with the query builder, so those columns must exist.
 - A `post_import_commands` string runs as a shell command line, so Artisan commands are written as `php artisan ...`; only an Artisan command class runs through `Artisan::call()`.
